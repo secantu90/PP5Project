@@ -19,8 +19,7 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float2 tex : UV;
-	float3 norm : NORMALS;
-	float3 lightPos : TEXCOORD0;
+	float4 norm : NORMALS;
 	float3 sLightPos : TEXCOORD1;
 	float4 worldPosition : TEXCOORD2;
 };
@@ -35,12 +34,15 @@ PixelShaderInput main(VertexShaderInput input)
 
 	float4 worldPosition;
 	worldPosition = mul(pos, world);
-	output.sLightPos = worldPosition;
+	output.sLightPos.x = worldPosition.x;
+	output.sLightPos.y = worldPosition.y;
+	output.sLightPos.z = worldPosition.z;
 
-	float3 norm;
+	float4 norm;
 	norm.x = 0;
 	norm.y = 1;
 	norm.z = 0;
+	norm.w = 1;
 
 	output.norm = mul(norm, world);
 	output.norm = normalize(output.norm);

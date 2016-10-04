@@ -3,8 +3,7 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float2 tex : UV;
-	float3 norm : NORMALS;
-	float3 lightPos : TEXCOORD0;
+	float4 norm : NORMALS;
 	float3 sLightPos : TEXCOORD1;
 	float4 worldPosition : TEXCOORD2;
 };
@@ -32,13 +31,13 @@ SamplerState filter : register(s0);
 float4 main(PixelShaderInput input) : SV_TARGET
 {
 	//Directional light
-	float3 lightDir;
+	float4 lightDir;
 	float lightIntensity;
 	float4 color;
 
 	color = ambientColor;
 
-	lightDir = -lightDirection.xyz;
+	lightDir = -lightDirection;
 	lightIntensity = saturate(dot(lightDir, input.norm));
 	if (lightIntensity > 0.0f)
 	{
@@ -58,7 +57,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float lightIntensity3;
 	float4 color2;
 
-	float3 Position = PL_Position.xyz - input.sLightPos;
+	float4 slightPos = float4(input.sLightPos, 1);
+	float4 Position = PL_Position - slightPos;
 	Position = normalize(Position);
 
 	pLColor.x = 0;
@@ -72,28 +72,28 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float surfaceRatio;
 	float spotFactor;
 	float lightIntensity2;
-	float3 lightDir2;
+	float4 lightDir2;
 	float result;
 
-	lightDir2 = normalize(SL_Position.xyz - input.sLightPos);
-	surfaceRatio = saturate(dot(-lightDir2, sLightDirection.xyz));
+	lightDir2 = normalize(SL_Position - slightPos);
+	surfaceRatio = saturate(dot(-lightDir2, sLightDirection));
 	if (surfaceRatio > .8f)
 		spotFactor = 1;
 	else
 		spotFactor = 0;
 	lightIntensity2 = saturate(dot(lightDir2, input.norm));
-	result = spotFactor * lightIntensity2 * diffuseColor;
+	result = (spotFactor * lightIntensity2 * diffuseColor.x) + (spotFactor * lightIntensity2 * diffuseColor.y) + (spotFactor * lightIntensity2 * diffuseColor.z) + (spotFactor * lightIntensity2 * diffuseColor.w);
 
 	float attenuation = 1 - saturate((1 - surfaceRatio) / (1 - .8f));
 
 	result = result * attenuation * attenuation;
 
 	//Specular light
-	float3 reflection;
+	float4 reflection;
 	float4 specular;
 
 	float4 direction = normalize(cDirection - input.worldPosition);
-	reflection = normalize(lightDir + direction.xyz);
+	reflection = normalize(lightDir + direction);
 	specular = pow(saturate(dot(input.norm, normalize(reflection))), 32);
 	float4 result2 = diffuseColor * .7f * specular;	
 
