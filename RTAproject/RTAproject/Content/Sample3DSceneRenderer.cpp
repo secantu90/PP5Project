@@ -105,10 +105,10 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
 	//For specular lighting camera tracking
-	//m_constantBufferLightData.cX = cameraX;
-	//m_constantBufferLightData.cX = cameraY;
-	//m_constantBufferLightData.cX = cameraZ;
-	//m_constantBufferLightData.cX = cameraW;
+	m_constantBufferLightData.cX = m_constantBufferData.view._41;
+	m_constantBufferLightData.cX = m_constantBufferData.view._42;
+	m_constantBufferLightData.cX = m_constantBufferData.view._43;
+	m_constantBufferLightData.cX = m_constantBufferData.view._44;
 
 	int timeTemp = static_cast<int>(timer.GetTotalSeconds());
 	if (timeTemp - time < 5)
