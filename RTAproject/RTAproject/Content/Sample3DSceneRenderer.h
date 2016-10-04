@@ -39,8 +39,8 @@ namespace RTAproject
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBufferLights;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBufferLightsPosition;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderView;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_sampleState;
+		ID3D11ShaderResourceView*					m_shaderView = NULL;
+		ID3D11SamplerState*						    m_sampleState = NULL;
 
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;

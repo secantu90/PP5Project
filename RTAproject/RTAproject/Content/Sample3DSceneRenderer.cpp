@@ -71,9 +71,9 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	XMStoreFloat4x4(&identity, XMMatrixIdentity());
 	m_constantBufferData.world = identity;
 
-	m_constantBufferLightData.Ar = 0.5f;
-	m_constantBufferLightData.Ag = 0.5f;
-	m_constantBufferLightData.Ab = 0.5f;
+	m_constantBufferLightData.Ar = 1;
+	m_constantBufferLightData.Ag = 0;
+	m_constantBufferLightData.Ab = 0;
 	m_constantBufferLightData.Aa = 1;
 	m_constantBufferLightData.r = 1;
 	m_constantBufferLightData.g = 1;
@@ -110,18 +110,20 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	//m_constantBufferLightData.cX = cameraZ;
 	//m_constantBufferLightData.cX = cameraW;
 
-	int timeTemp = timer.GetTotalSeconds();
+	int timeTemp = static_cast<int>(timer.GetTotalSeconds());
 	if (timeTemp - time < 5)
 	{
 		m_constantBufferLightPosData.sX += .001f;
 		m_constantBufferLightPosData.z -= .001f;
 		m_constantBufferLightData.z = -1;
+		m_constantBufferLightData.sZ = -.75f;
 	}
 	else
 	{
 		m_constantBufferLightPosData.sX -= .001f;
 		m_constantBufferLightPosData.z += .001f;
 		m_constantBufferLightData.z = 1;
+		m_constantBufferLightData.sZ = .75f;
 		if (timeTemp - time > 9)
 			time = timeTemp;
 	}
@@ -355,11 +357,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	});
 
 	
-	CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
-	
+	//Creating Sampler
 	D3D11_SAMPLER_DESC sampleDesc;
 	ZeroMemory(&sampleDesc, sizeof(sampleDesc));
-	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -370,16 +371,20 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 	m_deviceResources->GetD3DDevice()->CreateSamplerState(&sampleDesc, &m_sampleState);
 
+	HRESULT hr;
+
+	hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
+
 	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
 
-		// Load mesh vertices. Each vertex has a position and a color.
+		// Load mesh vertices. Each vertex has a position and a uv.
 		static const VertexPositionColor cubeVertices[] = 
 		{
-			{XMFLOAT3(-0.5f, 0, -0.5f), XMFLOAT2(0, 1.0f)},
+			{XMFLOAT3(-0.5f, 0, -0.5f), XMFLOAT2(0, 1)},
 			{XMFLOAT3(-0.5f, 0,  0.5f), XMFLOAT2(0, 0)},
-			{XMFLOAT3( 0.5f, 0, -0.5f), XMFLOAT2(1.0f, 1.0f)},
-			{XMFLOAT3( 0.5f, 0,  0.5f), XMFLOAT2(1.0f, 0)},
+			{XMFLOAT3( 0.5f, 0, -0.5f), XMFLOAT2(1, 1)},
+			{XMFLOAT3( 0.5f, 0,  0.5f), XMFLOAT2(1, 0)},
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
@@ -404,21 +409,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		{
 			0,2,1, // -x
 			1,2,3,
-
-			4,5,6, // +x
-			5,7,6,
-
-			0,1,5, // -y
-			0,5,4,
-
-			2,6,7, // +y
-			2,7,3,
-
-			0,4,6, // -z
-			0,6,2,
-
-			1,3,7, // +z
-			1,7,5,
 		};
 
 		m_indexCount = ARRAYSIZE(cubeIndices);
@@ -437,6 +427,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			);
 	});
 
+	
+
 	// Once the cube is loaded, the object is ready to be rendered.
 	createCubeTask.then([this] () {
 		m_loadingComplete = true;
@@ -454,5 +446,8 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
-	m_shaderView.Reset();
+	if (m_shaderView != NULL)
+		m_shaderView->Release();
+	if(m_sampleState != NULL)
+		m_sampleState->Release();
 }

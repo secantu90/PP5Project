@@ -26,7 +26,7 @@ cbuffer LightPositionBuffer : register(b1)
 
 texture2D baseTexture : register(t0);
 
-SamplerState filter : register (s0);
+SamplerState filter : register(s0);
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -46,12 +46,12 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		color = saturate(color);
 	}
 
-	//float4 finalColor = baseTexture.Sample(filter, input.tex);
+	float4 finalColor = baseTexture.Sample(filter, input.tex);
 
-	float4 finalColor = 0;
-	finalColor.x = 1;
-	finalColor.y = 0;
-	finalColor.z = 0;
+	//float4 finalColor = 0;
+	//finalColor.x = 1;
+	//finalColor.y = 0;
+	//finalColor.z = 0;
 
 	//Point light
 	float4 pLColor;
@@ -61,9 +61,9 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float3 Position = PL_Position.xyz - input.sLightPos;
 	Position = normalize(Position);
 
-	pLColor.x = 1;
+	pLColor.x = 0;
 	pLColor.y = 1;
-	pLColor.z = 1;
+	pLColor.z = 0;
 	pLColor.w = 1;
 	lightIntensity3 = saturate(dot(input.norm, Position));
 	color2 = pLColor * lightIntensity3;
@@ -89,17 +89,17 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	result = result * attenuation * attenuation;
 
 	//Specular light
-	//float3 reflection;
-	//float4 specular;
+	float3 reflection;
+	float4 specular;
 
-	//float4 direction = normalize(cDirection - input.worldPosition);
-	//reflection = normalize(lightDir + direction.xyz);
-	//specular = pow(saturate(dot(input.norm, normalize(reflection))), 32);
-	//float4 result2 = diffuseColor * .7f * specular;	
+	float4 direction = normalize(cDirection - input.worldPosition);
+	reflection = normalize(lightDir + direction.xyz);
+	specular = pow(saturate(dot(input.norm, normalize(reflection))), 32);
+	float4 result2 = diffuseColor * .7f * specular;	
 
 	color = (color + result + color2) * finalColor;
 
-	//color = saturate(color + result2);
+	color = saturate(color + result2);
 
 
 	return color;
