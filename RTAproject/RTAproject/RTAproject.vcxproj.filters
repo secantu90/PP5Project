@@ -67,11 +67,13 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="RTAprojectMain.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="RTAprojectMain.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">

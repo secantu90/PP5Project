@@ -1,7 +1,10 @@
 ﻿#include "pch.h"
 #include "Sample3DSceneRenderer.h"
 
+
 #include "..\Common\DirectXHelper.h"
+
+
 
 using namespace RTAproject;
 
@@ -63,20 +66,70 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+
+	XMFLOAT4X4 identity;
+	XMStoreFloat4x4(&identity, XMMatrixIdentity());
+	m_constantBufferData.world = identity;
+
+	m_constantBufferLightData.Ar = 0.5f;
+	m_constantBufferLightData.Ag = 0.5f;
+	m_constantBufferLightData.Ab = 0.5f;
+	m_constantBufferLightData.Aa = 1;
+	m_constantBufferLightData.r = 1;
+	m_constantBufferLightData.g = 1;
+	m_constantBufferLightData.b = 1;
+	m_constantBufferLightData.a = 1;
+	m_constantBufferLightData.x = 0;
+	m_constantBufferLightData.y = 0;
+	m_constantBufferLightData.z = 1;
+	m_constantBufferLightData.w = 0;
+	m_constantBufferLightData.sX = 0;
+	m_constantBufferLightData.sY = -1;
+	m_constantBufferLightData.sZ = 0;
+	m_constantBufferLightData.sW = 0;
+
+	m_constantBufferLightPosData.x = 0;
+	m_constantBufferLightPosData.y = .05f;
+	m_constantBufferLightPosData.z = 0;
+	m_constantBufferLightPosData.w = 1;
+	m_constantBufferLightPosData.sX = 0;
+	m_constantBufferLightPosData.sY = .1f;
+	m_constantBufferLightPosData.sZ = 0;
+	m_constantBufferLightPosData.sW = 1;
+
+	
+	time = 0;
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
-	if (!m_tracking)
-	{
-		// Convert degrees to radians, then convert seconds to rotation angle
-		float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
-		double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
-		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
+	//For specular lighting camera tracking
+	//m_constantBufferLightData.cX = cameraX;
+	//m_constantBufferLightData.cX = cameraY;
+	//m_constantBufferLightData.cX = cameraZ;
+	//m_constantBufferLightData.cX = cameraW;
 
-		Rotate(radians);
+	int timeTemp = timer.GetTotalSeconds();
+	if (timeTemp - time < 5)
+	{
+		m_constantBufferLightPosData.sX += .001f;
+		m_constantBufferLightPosData.z -= .001f;
+		m_constantBufferLightData.z = -1;
 	}
+	else
+	{
+		m_constantBufferLightPosData.sX -= .001f;
+		m_constantBufferLightPosData.z += .001f;
+		m_constantBufferLightData.z = 1;
+		if (timeTemp - time > 9)
+			time = timeTemp;
+	}
+
+
+	XMFLOAT4X4 temp;
+	XMStoreFloat4x4(&temp, XMMatrixMultiply(XMMatrixScaling(5, 5, 5), XMMatrixIdentity()));
+	m_constantBufferData.model = temp;
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -117,6 +170,7 @@ void Sample3DSceneRenderer::Render()
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
+
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(
 		m_constantBuffer.Get(),
@@ -127,6 +181,31 @@ void Sample3DSceneRenderer::Render()
 		0,
 		0
 		);
+
+	//Prepare the directional light constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLights.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightData,
+		0,
+		0,
+		0
+		);
+
+	//Prepare the spot light and point light position constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLightsPosition.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightPosData,
+		0,
+		0,
+		0
+		);
+
+	//Bind Sampler state
+	context->PSSetSamplers(0, 1, &m_sampleState);
 
 	// Each vertex is one instance of the VertexPositionColor struct.
 	UINT stride = sizeof(VertexPositionColor);
@@ -149,6 +228,7 @@ void Sample3DSceneRenderer::Render()
 
 	context->IASetInputLayout(m_inputLayout.Get());
 
+
 	// Attach our vertex shader.
 	context->VSSetShader(
 		m_vertexShader.Get(),
@@ -165,12 +245,32 @@ void Sample3DSceneRenderer::Render()
 		nullptr
 		);
 
+	// Send the constant buffer for the directional light.
+	context->PSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBufferLights.GetAddressOf(),
+		nullptr,
+		nullptr
+		);
+
+	context->PSSetConstantBuffers1(
+		1,
+		1,
+		m_constantBufferLightsPosition.GetAddressOf(),
+		nullptr,
+		nullptr
+		);
+
 	// Attach our pixel shader.
 	context->PSSetShader(
 		m_pixelShader.Get(),
 		nullptr,
 		0
 		);
+
+	context->PSSetShaderResources(0, 1, &m_shaderView);
+
 
 	// Draw the objects.
 	context->DrawIndexed(
@@ -200,7 +300,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc [] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		DX::ThrowIfFailed(
@@ -233,7 +333,42 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&m_constantBuffer
 				)
 			);
+
+		//Create buffer for light constant buffer.
+		CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(LightBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantBufferDesc2,
+				nullptr,
+				&m_constantBufferLights
+				)
+			);
+
+		CD3D11_BUFFER_DESC constantBufferDesc3(sizeof(PLightPosBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantBufferDesc3,
+				nullptr,
+				&m_constantBufferLightsPosition
+				)
+			);
 	});
+
+	
+	CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
+	
+	D3D11_SAMPLER_DESC sampleDesc;
+	ZeroMemory(&sampleDesc, sizeof(sampleDesc));
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.MinLOD = 0.1f;
+	sampleDesc.MaxLOD = 100;
+	sampleDesc.MaxAnisotropy = 1;
+	sampleDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	m_deviceResources->GetD3DDevice()->CreateSamplerState(&sampleDesc, &m_sampleState);
 
 	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
@@ -241,14 +376,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] = 
 		{
-			{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)},
-			{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-			{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-			{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f)},
-			{XMFLOAT3( 0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-			{XMFLOAT3( 0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f)},
-			{XMFLOAT3( 0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f)},
-			{XMFLOAT3( 0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f)},
+			{XMFLOAT3(-0.5f, 0, -0.5f), XMFLOAT2(0, 1.0f)},
+			{XMFLOAT3(-0.5f, 0,  0.5f), XMFLOAT2(0, 0)},
+			{XMFLOAT3( 0.5f, 0, -0.5f), XMFLOAT2(1.0f, 1.0f)},
+			{XMFLOAT3( 0.5f, 0,  0.5f), XMFLOAT2(1.0f, 0)},
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
@@ -319,6 +450,9 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_inputLayout.Reset();
 	m_pixelShader.Reset();
 	m_constantBuffer.Reset();
+	m_constantBufferLights.Reset();
+	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+	m_shaderView.Reset();
 }

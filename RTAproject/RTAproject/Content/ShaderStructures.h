@@ -5,6 +5,7 @@ namespace RTAproject
 	// Constant buffer used to send MVP matrices to the vertex shader.
 	struct ModelViewProjectionConstantBuffer
 	{
+		DirectX::XMFLOAT4X4 world;
 		DirectX::XMFLOAT4X4 model;
 		DirectX::XMFLOAT4X4 view;
 		DirectX::XMFLOAT4X4 projection;
@@ -14,6 +15,21 @@ namespace RTAproject
 	struct VertexPositionColor
 	{
 		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT3 color;
+		DirectX::XMFLOAT2 uv;
+	};
+
+	struct LightBuffer
+	{
+		float						Ar, Ag, Ab, Aa;
+		float						r, g, b, a;
+		float						x, y, z, w;
+		float						sX, sY, sZ, sW;
+		float						cX, cY, cZ, cW;
+	};
+
+	struct PLightPosBuffer
+	{
+		float						x, y, z, w;
+		float						sX, sY, sZ, sW;
 	};
 }
