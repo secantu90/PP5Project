@@ -106,9 +106,9 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
 	//For specular lighting camera tracking
 	m_constantBufferLightData.cX = m_constantBufferData.view._41;
-	m_constantBufferLightData.cX = m_constantBufferData.view._42;
-	m_constantBufferLightData.cX = m_constantBufferData.view._43;
-	m_constantBufferLightData.cX = m_constantBufferData.view._44;
+	m_constantBufferLightData.cY = m_constantBufferData.view._42;
+	m_constantBufferLightData.cZ = m_constantBufferData.view._43;
+	m_constantBufferLightData.cW = m_constantBufferData.view._44;
 
 	int timeTemp = static_cast<int>(timer.GetTotalSeconds());
 	if (timeTemp - time < 5)
