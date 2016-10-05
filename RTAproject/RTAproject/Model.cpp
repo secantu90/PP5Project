@@ -17,11 +17,7 @@ Model::Model(char* filename, wchar_t* textureName, ID3D11Device* device, DirectX
 void Model::Draw(ID3D11DeviceContext* context)
 {
 	context->DrawIndexed(
-<<<<<<< HEAD
 		static_cast<UINT>(interleaved_index.size()),
-=======
-		interleaved_index.size(),
->>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
 		0,
 		0
 		);
@@ -131,11 +127,7 @@ void Model::LoadObject(char* fileName, wchar_t* textureName, ID3D11Device* devic
 	vertexBufferData.pSysMem = interleaved_vert.data();
 	vertexBufferData.SysMemPitch = 0;
 	vertexBufferData.SysMemSlicePitch = 0;
-<<<<<<< HEAD
 	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VERTEX3) * static_cast<UINT>(interleaved_vert.size()), D3D11_BIND_VERTEX_BUFFER);
-=======
-	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VERTEX3) * interleaved_vert.size(), D3D11_BIND_VERTEX_BUFFER);
->>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
 	DX::ThrowIfFailed(
 		device->CreateBuffer(
 			&vertexBufferDesc,
@@ -147,11 +139,7 @@ void Model::LoadObject(char* fileName, wchar_t* textureName, ID3D11Device* devic
 	indexBufferData.pSysMem = interleaved_index.data();
 	indexBufferData.SysMemPitch = 0;
 	indexBufferData.SysMemSlicePitch = 0;
-<<<<<<< HEAD
 	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned int) * static_cast<UINT>(interleaved_index.size()), D3D11_BIND_INDEX_BUFFER);
-=======
-	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned int) * interleaved_index.size(), D3D11_BIND_INDEX_BUFFER);
->>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
 	DX::ThrowIfFailed(
 		device->CreateBuffer(
 			&indexBufferDesc,
