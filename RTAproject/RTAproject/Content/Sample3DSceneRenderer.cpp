@@ -18,6 +18,13 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 {
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
+
+	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
+	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	XMStoreFloat4x4(&camera, XMMatrixLookAtLH(eye, at, up));
+
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 }
 
 // Initializes view parameters when the window size changes.
@@ -46,7 +53,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 		aspectRatio,
 		0.01f,
 		100.0f
-		);
+	);
 
 	XMFLOAT4X4 orientation = m_deviceResources->GetOrientationTransform3D();
 
@@ -55,28 +62,153 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	XMStoreFloat4x4(
 		&m_constantBufferData.projection,
 		XMMatrixTranspose(perspectiveMatrix * orientationMatrix)
-		);
+	);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
+	//static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	//static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//XMStoreFloat4x4(&camera, XMMatrixLookAtLH(eye, at, up));
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+	//XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+
+	//XMFLOAT4X4 identity;
+	//XMStoreFloat4x4(&identity, XMMatrixIdentkity());
+	//m_constantBufferData.world = identity;
+
+	m_constantBufferLightData.Ar = 1;
+	m_constantBufferLightData.Ag = 0;
+	m_constantBufferLightData.Ab = 0;
+	m_constantBufferLightData.Aa = 1;
+	m_constantBufferLightData.r = 1;
+	m_constantBufferLightData.g = 1;
+	m_constantBufferLightData.b = 1;
+	m_constantBufferLightData.a = 1;
+	m_constantBufferLightData.x = 0;
+	m_constantBufferLightData.y = 0;
+	m_constantBufferLightData.z = 1;
+	m_constantBufferLightData.w = 0;
+	m_constantBufferLightData.sX = 0;
+	m_constantBufferLightData.sY = -1;
+	m_constantBufferLightData.sZ = 0;
+	m_constantBufferLightData.sW = 0;
+
+	m_constantBufferLightPosData.x = 0;
+	m_constantBufferLightPosData.y = .05f;
+	m_constantBufferLightPosData.z = 0;
+	m_constantBufferLightPosData.w = 1;
+	m_constantBufferLightPosData.sX = 0;
+	m_constantBufferLightPosData.sY = .1f;
+	m_constantBufferLightPosData.sZ = 0;
+	m_constantBufferLightPosData.sW = 1;
+
+
+	time = 0;
 }
+
+//////////////////////////////////////////////////////////////////////////
+//Emilio
+extern bool mouseMoved;
+extern float newX;
+extern float newY;
+extern bool leftClick;
+extern char keys[256];
+//End Emilio
+//////////////////////////////////////////////////////////////////////////
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
-	if (!m_tracking)
-	{
-		// Convert degrees to radians, then convert seconds to rotation angle
-		float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
-		double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
-		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
 
-		Rotate(radians);
+
+	//For specular lighting camera tracking
+	m_constantBufferLightData.cX = m_constantBufferData.view._41;
+	m_constantBufferLightData.cY = m_constantBufferData.view._42;
+	m_constantBufferLightData.cZ = m_constantBufferData.view._43;
+	m_constantBufferLightData.cW = m_constantBufferData.view._44;
+
+	int timeTemp = static_cast<int>(timer.GetTotalSeconds());
+	if (timeTemp - time < 5)
+	{
+		m_constantBufferLightPosData.sX += .001f;
+		m_constantBufferLightPosData.z -= .001f;
+		m_constantBufferLightData.z = -1;
+		m_constantBufferLightData.sZ = -.75f;
 	}
+	else
+	{
+		m_constantBufferLightPosData.sX -= .001f;
+		m_constantBufferLightPosData.z += .001f;
+		m_constantBufferLightData.z = 1;
+		m_constantBufferLightData.sZ = .75f;
+		if (timeTemp - time > 9)
+			time = timeTemp;
+	}
+
+
+	XMFLOAT4X4 temp;
+	XMStoreFloat4x4(&temp, XMMatrixMultiply(XMMatrixScaling(5, 5, 5), XMMatrixIdentity()));
+	m_constantBufferData.model = temp;
+
+	//////////////////////////////////////////////////////////////////////////
+	//Emilio
+	enum CameraMovement
+	{
+		camMoveX = 0,
+		camMoveY,
+		camMoveZ,
+		camPos
+	};
+
+	XMMATRIX newcamera = XMLoadFloat4x4(&camera);
+	//move left
+	if (keys['A'])
+		newcamera.r[camPos] += (newcamera.r[camMoveX] * static_cast<float>(-timer.GetElapsedSeconds()) *5.0f);
+	//move right			   																			
+	if (keys['D'])
+		newcamera.r[camPos] += (newcamera.r[camMoveX] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move up				   																			
+	if (keys['R'])
+		newcamera.r[camPos] += (newcamera.r[camMoveY] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move down				   
+	if (keys['F'])
+		newcamera.r[camPos] += (newcamera.r[camMoveY] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
+	//move forward			  																			
+	if (keys['W'])
+		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move back				   																		 
+	if (keys['S'])
+		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
+
+
+	if (mouseMoved)
+	{
+		// Updates the application state once per frame.
+		if (leftClick)
+		{
+			XMVECTOR pos = newcamera.r[camPos];
+			newcamera.r[camPos] = XMLoadFloat4(&XMFLOAT4(0, 0, 0, 1));
+			newcamera = XMMatrixRotationX(newY * 0.01f) * newcamera * XMMatrixRotationY(newX * 0.01f);
+			newcamera.r[camPos] = pos;
+		}
+	}
+
+	XMStoreFloat4x4(&camera, newcamera);
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(0, newcamera)));
+	mouseMoved = false;
+
+	////create skybox world matrix
+	//XMMATRIX skyBoxWM = XMMatrixIdentity();
+	//skyBoxWM = XMMatrixMultiply(XMMatrixScaling(100.0f, 100.0f, 100.0f), skyBoxWM);
+	//skyBox.WM = skyBoxWM;
+	skyBox.WM.r[3].m128_f32[0] = newcamera.r[camPos].m128_f32[0];
+	skyBox.WM.r[3].m128_f32[1] = newcamera.r[camPos].m128_f32[1];
+	skyBox.WM.r[3].m128_f32[2] = newcamera.r[camPos].m128_f32[2];
+	skyBox.WM.r[3].m128_f32[3] = newcamera.r[camPos].m128_f32[3];
+
+
+	//End Emilio
+	//////////////////////////////////////////////////////////////////////////
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -117,7 +249,218 @@ void Sample3DSceneRenderer::Render()
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
+
+
+
 	// Prepare the constant buffer to send it to the graphics device.
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0
+	);
+
+	//Prepare the directional light constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLights.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightData,
+		0,
+		0,
+		0
+	);
+
+	//Prepare the spot light and point light position constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLightsPosition.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightPosData,
+		0,
+		0,
+		0
+	);
+
+	//Bind Sampler state
+	context->PSSetSamplers(0, 1, &m_sampleState);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//Draw SkyBox
+	//context->RSSetState(m_counterClockwise.Get());
+	context->RSSetState(m_clockwise.Get());
+
+	context->IASetInputLayout(m_skyBoxInputLayout.Get());
+	context->VSSetShader(
+		m_skyBoxVS.Get(),
+		nullptr,
+		0
+	);
+	context->PSSetShader(
+		m_skyBoxPS.Get(),
+		nullptr,
+		0
+	);
+	//context->PSSetSamplers(
+	//	0,
+	//	1,
+	//	m_sampleState.GetAddressOf()
+	//	);
+	//context->PSSetSamplers(
+	//	1,
+	//	1,
+	//	m_sampleState.GetAddressOf()
+	//	);
+	XMMATRIX newSkyBoxWM = XMMatrixTranspose(skyBox.WM);
+	context->PSSetShaderResources(0, 1, skyBox.resourceView.GetAddressOf());
+	skyBox.SetBuffers(context);
+	XMStoreFloat4x4(&m_constantBufferData.model, newSkyBoxWM);
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0
+	);
+
+	context->VSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+	skyBox.Draw(context);
+	//context->RSSetState(m_clockwise.Get());
+	context->RSSetState(m_counterClockwise.Get());
+	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0F, 0);
+
+	//End Emilio
+	////////////////////////////////////////////////////////////////////////////
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixIdentity());
+
+
+	// Prepare the constant buffer to send it to the graphics device.
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0
+	);
+
+	//Prepare the directional light constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLights.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightData,
+		0,
+		0,
+		0
+	);
+
+	//Prepare the spot light and point light position constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLightsPosition.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightPosData,
+		0,
+		0,
+		0
+	);
+
+	//Bind Sampler state
+	context->PSSetSamplers(0, 1, &m_sampleState);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// Each vertex is one instance of the VertexPositionColor struct.
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+	context->IASetVertexBuffers(
+		0,
+		1,
+		m_vertexBuffer.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+	context->IASetIndexBuffer(
+		m_indexBuffer.Get(),
+		DXGI_FORMAT_R16_UINT, // Each index is one 16-bit unsigned integer (short).
+		0
+	);
+
+
+	context->IASetInputLayout(m_inputLayout.Get());
+
+
+	// Attach our vertex shader.
+	context->VSSetShader(
+		m_vertexShader.Get(),
+		nullptr,
+		0
+	);
+
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
+	// Send the constant buffer for the directional light.
+	context->PSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBufferLights.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
+	context->PSSetConstantBuffers1(
+		1,
+		1,
+		m_constantBufferLightsPosition.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
+	// Attach our pixel shader.
+	context->PSSetShader(
+		m_pixelShader.Get(),
+		nullptr,
+		0
+	);
+
+	context->PSSetShaderResources(0, 1, &m_shaderView);
+
+
+	// Draw the objects.
+	context->DrawIndexed(
+		m_indexCount,
+		0,
+		0
+	);
+
+
+
+	///////////////////////////////////////////////////
+	//Dallas
+	// Prepare the constant buffer to send it to the graphics device.
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
+
 	context->UpdateSubresource1(
 		m_constantBuffer.Get(),
 		0,
@@ -144,18 +487,18 @@ void Sample3DSceneRenderer::Render()
 	);
 
 	// Each vertex is one instance of the VertexPositionColor struct.
-	UINT stride = sizeof(RobustVertex);
-	UINT offset = 0;
+	stride = sizeof(RobustVertex);
+	offset = 0;
 	context->IASetVertexBuffers(
 		0,
 		1,
-		m_vertexBuffer.GetAddressOf(),
+		m_vertexBufferBox.GetAddressOf(),
 		&stride,
 		&offset
 		);
 
 	context->IASetIndexBuffer(
-		m_indexBuffer.Get(),
+		m_indexBufferBox.Get(),
 		DXGI_FORMAT_R16_UINT, // Each index is one 16-bit unsigned integer (short).
 		0
 		);
@@ -190,17 +533,20 @@ void Sample3DSceneRenderer::Render()
 
 	// Attach our pixel shader.
 	context->PSSetShader(
-		m_pixelShader.Get(),
+		m_pixelShaderSimple.Get(),
 		nullptr,
 		0
 		);
 
 	// Draw the objects.
 	context->DrawIndexed(
-		m_indexCount,
+		m_indexCountBox,
 		0,
 		0
 		);
+	//End Dallas
+	///////////////////////////////////////////////////
+
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources()
@@ -208,7 +554,17 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+	auto loadPSSimpleTask = DX::ReadDataAsync(L"SimplePS.cso");
 	auto loadVSAniTask = DX::ReadDataAsync(L"VertexAnimationShader.cso");
+	///////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//Load skyBox tasks
+	auto loadSkyVSTask = DX::ReadDataAsync(L"SkyBoxVS.cso");
+	auto loadSkyPSTask = DX::ReadDataAsync(L"SkyBoxPS.cso");
+
+	//End Emilio
+	/////////////////////////////////////////////////////////////////////////////////
+
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
@@ -218,14 +574,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				fileData.size(),
 				nullptr,
 				&m_vertexShader
-				)
-			);
+			)
+		);
 
-		static const D3D11_INPUT_ELEMENT_DESC vertexDesc [] =
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		DX::ThrowIfFailed(
@@ -235,8 +590,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&fileData[0],
 				fileData.size(),
 				&m_inputLayout
-				)
-			);
+			)
+		);
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
@@ -258,7 +613,39 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&m_constantBuffer
 				)
 			);
+
+		//Create buffer for light constant buffer.
+		CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(LightBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantBufferDesc2,
+				nullptr,
+				&m_constantBufferLights
+			)
+		);
+
+		CD3D11_BUFFER_DESC constantBufferDesc3(sizeof(PLightPosBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantBufferDesc3,
+				nullptr,
+				&m_constantBufferLightsPosition
+			)
+		);
 	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSSimpleTask = loadPSSimpleTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreatePixelShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_pixelShaderSimple
+			)
+		);
+	});
+
 
 	auto createVSAniTask = loadVSAniTask.then([this](const std::vector<byte>& fileData) {
 		DX::ThrowIfFailed(
@@ -299,77 +686,136 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		);
 	});
 
-	// Once both shaders are loaded, create the mesh.
-	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//SkyBox VertexShader
+	auto createSkyVSTask = loadSkyVSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateVertexShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_skyBoxVS
+			)
+		);
+		static const D3D11_INPUT_ELEMENT_DESC skyVertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV",	  0, DXGI_FORMAT_R32G32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",	  0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-		//// Load mesh vertices. Each vertex has a position and a color.
-		//static const RobustVertex cubeVertices[] =
-		//{
-		//	{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3( 0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3( 0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3( 0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//	{XMFLOAT3( 0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
-		//};
+		};
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateInputLayout(
+				skyVertexDesc,
+				ARRAYSIZE(skyVertexDesc),
+				&fileData[0],
+				fileData.size(),
+				&m_skyBoxInputLayout
+			)
+		);
+	});
+	//SkyBox PixelShader
+	auto createSkyPSTask = loadSkyPSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreatePixelShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_skyBoxPS
+			)
+		);
 
-		//D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
-		//vertexBufferData.pSysMem = cubeVertices;
-		//vertexBufferData.SysMemPitch = 0;
-		//vertexBufferData.SysMemSlicePitch = 0;
-		//CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
-		//DX::ThrowIfFailed(
-		//	m_deviceResources->GetD3DDevice()->CreateBuffer(
-		//		&vertexBufferDesc,
-		//		&vertexBufferData,
-		//		&m_vertexBuffer
-		//		)
-		//	);
-
-		//// Load mesh indices. Each trio of indices represents
-		//// a triangle to be rendered on the screen.
-		//// For example: 0,2,1 means that the vertices with indexes
-		//// 0, 2 and 1 from the vertex buffer compose the 
-		//// first triangle of this mesh.
-		//static const unsigned short cubeIndices [] =
-		//{
-		//	0,2,1, // -x
-		//	1,2,3,
-
-		//	4,5,6, // +x
-		//	5,7,6,
-
-		//	0,1,5, // -y
-		//	0,5,4,
-
-		//	2,6,7, // +y
-		//	2,7,3,
-
-		//	0,4,6, // -z
-		//	0,6,2,
-
-		//	1,3,7, // +z
-		//	1,7,5,
-		//};
-
-		//m_indexCount = ARRAYSIZE(cubeIndices);
-
-		//D3D11_SUBRESOURCE_DATA indexBufferData = {0};
-		//indexBufferData.pSysMem = cubeIndices;
-		//indexBufferData.SysMemPitch = 0;
-		//indexBufferData.SysMemSlicePitch = 0;
-		//CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-		//DX::ThrowIfFailed(
-		//	m_deviceResources->GetD3DDevice()->CreateBuffer(
-		//		&indexBufferDesc,
-		//		&indexBufferData,
-		//		&m_indexBuffer
-		//		)
-		//	);
+		CD3D11_BUFFER_DESC constantSkyBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantSkyBufferDesc,
+				nullptr,
+				&m_skyBoxConstBuff
+			)
+		);
 	});
 
+	CD3D11_RASTERIZER_DESC skyboxFrontDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	skyboxFrontDesc.FrontCounterClockwise = false;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&skyboxFrontDesc, m_clockwise.GetAddressOf());
+
+	CD3D11_RASTERIZER_DESC skyboxBackDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	skyboxBackDesc.FrontCounterClockwise = true;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&skyboxBackDesc, m_counterClockwise.GetAddressOf());
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//Creating Sampler
+	D3D11_SAMPLER_DESC sampleDesc;
+	ZeroMemory(&sampleDesc, sizeof(sampleDesc));
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.MinLOD = 0.1f;
+	sampleDesc.MaxLOD = 100;
+	sampleDesc.MaxAnisotropy = 1;
+	sampleDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	m_deviceResources->GetD3DDevice()->CreateSamplerState(&sampleDesc, &m_sampleState);
+
+
+	// Once both shaders are loaded, create the mesh.
+	auto createCubeTask = (createPSTask && createVSTask).then([this]() {
+
+		// Load mesh vertices. Each vertex has a position and a uv.
+		static const VertexPositionColor cubeVertices[] =
+		{
+			{ XMFLOAT3(-0.5f, 0, -0.5f), XMFLOAT2(0, 1) },
+			{ XMFLOAT3(-0.5f, 0,  0.5f), XMFLOAT2(0, 0) },
+			{ XMFLOAT3(0.5f, 0, -0.5f), XMFLOAT2(1, 1) },
+			{ XMFLOAT3(0.5f, 0,  0.5f), XMFLOAT2(1, 0) },
+		};
+
+
+		HRESULT hr;
+
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = cubeVertices;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&vertexBufferDesc,
+				&vertexBufferData,
+				&m_vertexBuffer
+			)
+		);
+
+		// Load mesh indices. Each trio of indices represents
+		// a triangle to be rendered on the screen.
+		// For example: 0,2,1 means that the vertices with indexes
+		// 0, 2 and 1 from the vertex buffer compose the 
+		// first triangle of this mesh.
+		static const unsigned short cubeIndices[] =
+		{
+			0,2,1, // -x
+			1,2,3,
+		};
+
+		m_indexCount = ARRAYSIZE(cubeIndices);
+
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = cubeIndices;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&indexBufferDesc,
+				&indexBufferData,
+				&m_indexBuffer
+			)
+		);
+	});
 	auto loadBoxTask = (createPSTask && createVSTask).then([this]() {
 
 		this->m_FBXExporter.Initialize();
@@ -389,34 +835,43 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		vertexBufferData.pSysMem = m_FBXExporter.m_Vertices.data();
 		vertexBufferData.SysMemPitch = 0;
 		vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC vertexBufferDesc(m_FBXExporter.m_Vertices.size() * sizeof(RobustVertex), D3D11_BIND_VERTEX_BUFFER);
+		CD3D11_BUFFER_DESC vertexBufferDesc(static_cast<UINT>(m_FBXExporter.m_Vertices.size() * sizeof(RobustVertex)), D3D11_BIND_VERTEX_BUFFER);
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&vertexBufferDesc,
 				&vertexBufferData,
-				&m_vertexBuffer
+				&m_vertexBufferBox
 			)
 		);
 
-		m_indexCount = m_FBXExporter.m_Indices.size();
+		m_indexCountBox = static_cast<unsigned int>(m_FBXExporter.m_Indices.size());
 
 		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
 		indexBufferData.pSysMem = m_FBXExporter.m_Indices.data();
 		indexBufferData.SysMemPitch = 0;
 		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(m_FBXExporter.m_Indices.size() * sizeof(unsigned short), D3D11_BIND_INDEX_BUFFER);
+		CD3D11_BUFFER_DESC indexBufferDesc(static_cast<UINT>(m_FBXExporter.m_Indices.size() * sizeof(unsigned short)), D3D11_BIND_INDEX_BUFFER);
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&indexBufferDesc,
 				&indexBufferData,
-				&m_indexBuffer
+				&m_indexBufferBox
 			)
 		);
 	});
 
 
+	//create the skybox Cube (Emilio)
+	auto createSkyBoxTask = (createSkyPSTask && createSkyVSTask).then([this]() {
+		char* fileName = "Cube.obj";
+		wchar_t* textureName = L"mountains.dds";
+		Model CreateSkyBox(fileName, textureName, m_deviceResources->GetD3DDevice(), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		CreateSkyBox.WM = XMMatrixIdentity();
+		skyBox = CreateSkyBox;
+	});
+
 	// Once the cube is loaded, the object is ready to be rendered.
-	loadBoxTask.then([this] () {
+	(loadBoxTask && createSkyBoxTask).then([this] () {
 		m_loadingComplete = true;
 	});
 }
@@ -428,7 +883,12 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_inputLayout.Reset();
 	m_pixelShader.Reset();
 	m_constantBuffer.Reset();
+	m_constantBufferLights.Reset();
+	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
-	m_FBXExporter.CleanupFbxManager();
+	if (m_shaderView != NULL)
+		m_shaderView->Release();
+	if (m_sampleState != NULL)
+		m_sampleState->Release();
 }

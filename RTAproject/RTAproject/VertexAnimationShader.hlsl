@@ -33,12 +33,19 @@ PixelShaderInput main(VertexShaderInput input)
 {
 	PixelShaderInput output;
 	float4 pos = float4(input.pos, 1.0f);
+	//float4 norm = float4(input.normal, 0.0f);
 
 
 	output.pos = mul(pos, offsets[input.blendingIndicies.x] * input.blendingWeights.x);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.y] * input.blendingWeights.y);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.z] * input.blendingWeights.z);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.w] * input.blendingWeights.w);
+
+	//output.norm = mul(norm, offsets[input.blendingIndicies.x] * input.blendingWeights.x);
+	//output.norm += mul(output.norm, offsets[input.blendingIndicies.y] * input.blendingWeights.y);
+	//output.norm += mul(output.norm, offsets[input.blendingIndicies.z] * input.blendingWeights.z);
+	//output.norm += mul(output.norm, offsets[input.blendingIndicies.w] * input.blendingWeights.w);
+	//norm = mul(norm, model);
 
 
 	// Transform the vertex position into projected space.

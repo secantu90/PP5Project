@@ -103,7 +103,7 @@ void FBXExporter::ProcessSkeletonHierarchyRecursively(FbxNode* inNode, int myInd
 	}
 	for (int i = 0; i < inNode->GetChildCount(); i++)
 	{
-		ProcessSkeletonHierarchyRecursively(inNode->GetChild(i), m_Skeleton.m_joints.size(), myIndex);
+		ProcessSkeletonHierarchyRecursively(inNode->GetChild(i), static_cast<int>(m_Skeleton.m_joints.size()), myIndex);
 	}
 }
 
@@ -161,7 +161,7 @@ void FBXExporter::ProcessJointsAndAnimations(FbxNode* inNode)
 			{
 				BlendingIndexWeightPair currBlendingIndexWeightPair;
 				currBlendingIndexWeightPair.mBlendingIndex = currJointIndex;
-				currBlendingIndexWeightPair.mBlendingWeight = currCluster->GetControlPointWeights()[i];
+				currBlendingIndexWeightPair.mBlendingWeight = static_cast<float>(currCluster->GetControlPointWeights()[i]);
 				m_controlPoints[currCluster->GetControlPointIndices()[i]]->mBlendingInfo.push_back(currBlendingIndexWeightPair);
 			}
 
@@ -199,7 +199,7 @@ void FBXExporter::ProcessJointsAndAnimations(FbxNode* inNode)
 	currBlendingIndexWeightPair.mBlendingWeight = 0;
 	for (auto itr = m_controlPoints.begin(); itr != m_controlPoints.end(); ++itr)
 	{
-		for (unsigned int i = itr->second->mBlendingInfo.size(); i < 4; ++i)
+		for (size_t i = itr->second->mBlendingInfo.size(); i < 4; ++i)
 		{
 			itr->second->mBlendingInfo.push_back(currBlendingIndexWeightPair);
 		}
@@ -215,6 +215,7 @@ unsigned int FBXExporter::FindJointIndexUsingName(const std::string& inJointName
 			return i;
 		}
 	}
+	return UINT32_MAX;
 }
 
 void FBXExporter::ProcessMesh(FbxNode* inNode)
@@ -223,7 +224,7 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 
 	m_TriangleCount = currMesh->GetPolygonCount();
 	int vertexCounter = 0;
-	m_Indices.reserve(m_TriangleCount*3.0f);
+	m_Indices.reserve(static_cast<uint64_t>(m_TriangleCount*3.0f));
 
 	for (unsigned int i = 0; i < m_TriangleCount; ++i)
 	{
@@ -470,7 +471,7 @@ void FBXExporter::Optimize()
 		{
 			m_Indices[j+i] = FindVertex(m_Vertices[i + j], uniqueVertices);
 		}
-		//std::swap(m_Indices[i], m_Indices[i + 1]);
+		std::swap(m_Indices[i], m_Indices[i + 1]);
 	}
 
 
@@ -481,17 +482,17 @@ void FBXExporter::Optimize()
 	m_Vertices = uniqueVertices;
 	for (unsigned int i = 0; i < m_Indices.size(); ++i)
 	{
-		m_Vertices[m_Indices[i]].blendingIndex.x = m_BlendingInfos[(i * 4)].mBlendingIndex;
-		m_Vertices[m_Indices[i]].blendingWeight.x = m_BlendingInfos[(i * 4)].mBlendingWeight;
+		m_Vertices[m_Indices[i]].blendingIndex.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingIndex);
+		m_Vertices[m_Indices[i]].blendingWeight.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingWeight);
 
-		m_Vertices[m_Indices[i]].blendingIndex.y = m_BlendingInfos[(i * 4) + 1].mBlendingIndex;
-		m_Vertices[m_Indices[i]].blendingWeight.y = m_BlendingInfos[(i * 4) + 1].mBlendingWeight;
+		m_Vertices[m_Indices[i]].blendingIndex.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingIndex);
+		m_Vertices[m_Indices[i]].blendingWeight.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingWeight);
 
-		m_Vertices[m_Indices[i]].blendingIndex.z = m_BlendingInfos[(i * 4) + 2].mBlendingIndex;
-		m_Vertices[m_Indices[i]].blendingWeight.z = m_BlendingInfos[(i * 4) + 2].mBlendingWeight;
+		m_Vertices[m_Indices[i]].blendingIndex.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingIndex);
+		m_Vertices[m_Indices[i]].blendingWeight.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingWeight);
 
-		m_Vertices[m_Indices[i]].blendingIndex.w = m_BlendingInfos[(i * 4) + 3].mBlendingIndex;
-		m_Vertices[m_Indices[i]].blendingWeight.w = m_BlendingInfos[(i * 4) + 3].mBlendingWeight;
+		m_Vertices[m_Indices[i]].blendingIndex.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingIndex);
+		m_Vertices[m_Indices[i]].blendingWeight.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingWeight);
 	}
 	uniqueVertices.clear();
 
@@ -514,25 +515,22 @@ void FBXExporter::ConvertToLHS()
 
 void FBXExporter::ConvertMatrixFtoX(FbxAMatrix toConvert, DirectX::XMFLOAT4X4 &matrix)
 {
-	matrix._11 = toConvert.mData[0].mData[0];
-	matrix._12 = toConvert.mData[0].mData[1];
-	matrix._13 = toConvert.mData[0].mData[2];
-	matrix._14 = toConvert.mData[0].mData[3];
-
-	matrix._21 = toConvert.mData[1].mData[0];
-	matrix._22 = toConvert.mData[1].mData[1];
-	matrix._23 = toConvert.mData[1].mData[2];
-	matrix._24 = toConvert.mData[1].mData[3];
-
-	matrix._31 = toConvert.mData[2].mData[0];
-	matrix._32 = toConvert.mData[2].mData[1];
-	matrix._33 = toConvert.mData[2].mData[2];
-	matrix._34 = toConvert.mData[2].mData[3];
-
-	matrix._41 = toConvert.mData[3].mData[0];
-	matrix._42 = toConvert.mData[3].mData[1];
-	matrix._43 = toConvert.mData[3].mData[2];
-	matrix._44 = toConvert.mData[3].mData[3];
+	matrix._11 = static_cast<float>(toConvert.mData[0].mData[0]);
+	matrix._12 = static_cast<float>(toConvert.mData[0].mData[1]);
+	matrix._13 = static_cast<float>(toConvert.mData[0].mData[2]);
+	matrix._14 = static_cast<float>(toConvert.mData[0].mData[3]);
+	matrix._21 = static_cast<float>(toConvert.mData[1].mData[0]);
+	matrix._22 = static_cast<float>(toConvert.mData[1].mData[1]);
+	matrix._23 = static_cast<float>(toConvert.mData[1].mData[2]);
+	matrix._24 = static_cast<float>(toConvert.mData[1].mData[3]);
+	matrix._31 = static_cast<float>(toConvert.mData[2].mData[0]);
+	matrix._32 = static_cast<float>(toConvert.mData[2].mData[1]);
+	matrix._33 = static_cast<float>(toConvert.mData[2].mData[2]);
+	matrix._34 = static_cast<float>(toConvert.mData[2].mData[3]);
+	matrix._41 = static_cast<float>(toConvert.mData[3].mData[0]);
+	matrix._42 = static_cast<float>(toConvert.mData[3].mData[1]);
+	matrix._43 = static_cast<float>(toConvert.mData[3].mData[2]);
+	matrix._44 = static_cast<float>(toConvert.mData[3].mData[3]);
 }
 
 void FBXExporter::ConvertMatrixXtoF(DirectX::XMFLOAT4X4 matrix, FbxAMatrix &toConvert)

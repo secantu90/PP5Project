@@ -68,6 +68,8 @@
     <ClCompile Include="RTAprojectMain.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="FBXExporter.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="Model.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -75,11 +77,17 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="FBXExporter.h" />
     <ClInclude Include="Utilities.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="Model.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="brownishDirt_seamless.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="mountains.dds" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -94,5 +102,17 @@
     <FxCompile Include="VertexAnimationShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+    <FxCompile Include="SkyBoxPS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyBoxVS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="SimplePS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Cube.obj" />
   </ItemGroup>
 </Project>

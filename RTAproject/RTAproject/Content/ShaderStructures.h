@@ -10,6 +10,46 @@ namespace RTAproject
 		DirectX::XMFLOAT4X4 projection;
 	};
 
+	// Used to send per-vertex data to the vertex shader.
+	struct VertexPositionColor
+	{
+		DirectX::XMFLOAT3 pos;
+		DirectX::XMFLOAT2 uv;
+	};
+
+
+
+	////////////////////////////////////////////////
+	//Emilio
+
+	struct VERTEX3
+	{
+		DirectX::XMFLOAT3 pos;
+		DirectX::XMFLOAT2 uv;
+		DirectX::XMFLOAT3 norm;
+	};
+
+
+	//End Emilio
+	////////////////////////////////////////////////
+
+
+	struct LightBuffer
+	{
+		float						Ar, Ag, Ab, Aa;
+		float						r, g, b, a;
+		float						x, y, z, w;
+		float						sX, sY, sZ, sW;
+		float						cX, cY, cZ, cW;
+	};
+
+	struct PLightPosBuffer
+	{
+		float						x, y, z, w;
+		float						sX, sY, sZ, sW;
+	};
+
+
 	struct BoneOffsets
 	{
 		DirectX::XMFLOAT4X4 offsets[4];

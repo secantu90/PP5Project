@@ -35,14 +35,14 @@ RTAprojectMain::~RTAprojectMain()
 }
 
 // Updates application state when the window size changes (e.g. device orientation change)
-void RTAprojectMain::CreateWindowSizeDependentResources() 
+void RTAprojectMain::CreateWindowSizeDependentResources()
 {
 	// TODO: Replace this with the size-dependent initialization of your app's content.
 	m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
 // Updates the application state once per frame.
-void RTAprojectMain::Update() 
+void RTAprojectMain::Update()
 {
 	// Update scene objects.
 	m_timer.Tick([&]()
@@ -55,7 +55,7 @@ void RTAprojectMain::Update()
 
 // Renders the current frame according to the current application state.
 // Returns true if the frame was rendered and is ready to be displayed.
-bool RTAprojectMain::Render() 
+bool RTAprojectMain::Render()
 {
 	// Don't try to render anything before the first Update.
 	if (m_timer.GetFrameCount() == 0)
