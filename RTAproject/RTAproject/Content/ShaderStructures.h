@@ -10,10 +10,38 @@ namespace RTAproject
 		DirectX::XMFLOAT4X4 projection;
 	};
 
-	// Used to send per-vertex data to the vertex shader.
-	struct VertexPositionColor
+	struct BoneOffsets
 	{
-		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT3 color;
+		DirectX::XMFLOAT4X4 offsets[4];
+	};
+
+	struct RobustVertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT2 uv;
+		DirectX::XMFLOAT3 normal;
+		DirectX::XMFLOAT4 blendingIndex;
+		DirectX::XMFLOAT4 blendingWeight;
+
+		bool operator==(const RobustVertex& rhs) const
+		{
+			if (position.x == rhs.position.x &&
+				position.y == rhs.position.y &&
+				position.z == rhs.position.z)
+			{
+				if (uv.x == rhs.uv.x &&
+					uv.y == rhs.uv.y)
+				{
+					if (normal.x == rhs.normal.x &&
+						normal.y == rhs.normal.y &&
+						normal.z == rhs.normal.z)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
 	};
 }

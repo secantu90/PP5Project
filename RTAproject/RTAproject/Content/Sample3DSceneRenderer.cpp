@@ -41,7 +41,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	// this transform should not be applied.
 
 	// This sample makes use of a right-handed coordinate system using row-major matrices.
-	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovRH(
+	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovLH(
 		fovAngleY,
 		aspectRatio,
 		0.01f,
@@ -62,7 +62,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -83,7 +83,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Prepare to pass the updated model matrix to the shader
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixMultiply(XMMatrixTranspose(XMMatrixRotationY(radians)),XMMatrixScaling(0.1f,0.1f,0.1f)));
 }
 
 void Sample3DSceneRenderer::StartTracking()
@@ -128,8 +128,23 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
+	m_boneOffsetsBufferData.offsets[0] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
+	m_boneOffsetsBufferData.offsets[1] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
+	m_boneOffsetsBufferData.offsets[2] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
+	m_boneOffsetsBufferData.offsets[3] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
+
+	context->UpdateSubresource1(
+		m_boneOffsetsBuffer.Get(),
+		0,
+		NULL,
+		&m_boneOffsetsBufferData,
+		0,
+		0,
+		0
+	);
+
 	// Each vertex is one instance of the VertexPositionColor struct.
-	UINT stride = sizeof(VertexPositionColor);
+	UINT stride = sizeof(RobustVertex);
 	UINT offset = 0;
 	context->IASetVertexBuffers(
 		0,
@@ -147,11 +162,11 @@ void Sample3DSceneRenderer::Render()
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	context->IASetInputLayout(m_inputLayout.Get());
+	context->IASetInputLayout(m_inputLayoutAni.Get());
 
 	// Attach our vertex shader.
 	context->VSSetShader(
-		m_vertexShader.Get(),
+		m_vertexShaderAnimation.Get(),
 		nullptr,
 		0
 		);
@@ -164,6 +179,14 @@ void Sample3DSceneRenderer::Render()
 		nullptr,
 		nullptr
 		);
+
+	context->VSSetConstantBuffers1(
+		1,
+		1,
+		m_boneOffsetsBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
 
 	// Attach our pixel shader.
 	context->PSSetShader(
@@ -185,6 +208,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+	auto loadVSAniTask = DX::ReadDataAsync(L"VertexAnimationShader.cso");
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
@@ -199,8 +223,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc [] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		DX::ThrowIfFailed(
@@ -235,79 +260,163 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			);
 	});
 
+	auto createVSAniTask = loadVSAniTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateVertexShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_vertexShaderAnimation
+			)
+		);
+
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BINDICIES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				&fileData[0],
+				fileData.size(),
+				&m_inputLayoutAni
+			)
+		);
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(BoneOffsets), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantBufferDesc,
+				nullptr,
+				&m_boneOffsetsBuffer
+			)
+		);
+	});
+
 	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
 
-		// Load mesh vertices. Each vertex has a position and a color.
-		static const VertexPositionColor cubeVertices[] = 
-		{
-			{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)},
-			{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-			{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-			{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f)},
-			{XMFLOAT3( 0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-			{XMFLOAT3( 0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f)},
-			{XMFLOAT3( 0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f)},
-			{XMFLOAT3( 0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f)},
-		};
+		//// Load mesh vertices. Each vertex has a position and a color.
+		//static const RobustVertex cubeVertices[] =
+		//{
+		//	{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3( 0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3( 0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3( 0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//	{XMFLOAT3( 0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f,0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f,0.0f,0.0f,0.0f)},
+		//};
 
-		D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
-		vertexBufferData.pSysMem = cubeVertices;
+		//D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
+		//vertexBufferData.pSysMem = cubeVertices;
+		//vertexBufferData.SysMemPitch = 0;
+		//vertexBufferData.SysMemSlicePitch = 0;
+		//CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		//DX::ThrowIfFailed(
+		//	m_deviceResources->GetD3DDevice()->CreateBuffer(
+		//		&vertexBufferDesc,
+		//		&vertexBufferData,
+		//		&m_vertexBuffer
+		//		)
+		//	);
+
+		//// Load mesh indices. Each trio of indices represents
+		//// a triangle to be rendered on the screen.
+		//// For example: 0,2,1 means that the vertices with indexes
+		//// 0, 2 and 1 from the vertex buffer compose the 
+		//// first triangle of this mesh.
+		//static const unsigned short cubeIndices [] =
+		//{
+		//	0,2,1, // -x
+		//	1,2,3,
+
+		//	4,5,6, // +x
+		//	5,7,6,
+
+		//	0,1,5, // -y
+		//	0,5,4,
+
+		//	2,6,7, // +y
+		//	2,7,3,
+
+		//	0,4,6, // -z
+		//	0,6,2,
+
+		//	1,3,7, // +z
+		//	1,7,5,
+		//};
+
+		//m_indexCount = ARRAYSIZE(cubeIndices);
+
+		//D3D11_SUBRESOURCE_DATA indexBufferData = {0};
+		//indexBufferData.pSysMem = cubeIndices;
+		//indexBufferData.SysMemPitch = 0;
+		//indexBufferData.SysMemSlicePitch = 0;
+		//CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+		//DX::ThrowIfFailed(
+		//	m_deviceResources->GetD3DDevice()->CreateBuffer(
+		//		&indexBufferDesc,
+		//		&indexBufferData,
+		//		&m_indexBuffer
+		//		)
+		//	);
+	});
+
+	auto loadBoxTask = (createPSTask && createVSTask).then([this]() {
+
+		this->m_FBXExporter.Initialize();
+		this->m_FBXExporter.LoadScene("Box_BindPose.fbx");
+
+		m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
+
+		if (m_FBXExporter.m_Skeleton.m_joints.empty())
+		{
+			m_FBXExporter.m_HasAnimation = false;
+		}
+
+		m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
+		m_FBXExporter.Optimize();
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = m_FBXExporter.m_Vertices.data();
 		vertexBufferData.SysMemPitch = 0;
 		vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		CD3D11_BUFFER_DESC vertexBufferDesc(m_FBXExporter.m_Vertices.size() * sizeof(RobustVertex), D3D11_BIND_VERTEX_BUFFER);
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&vertexBufferDesc,
 				&vertexBufferData,
 				&m_vertexBuffer
-				)
-			);
+			)
+		);
 
-		// Load mesh indices. Each trio of indices represents
-		// a triangle to be rendered on the screen.
-		// For example: 0,2,1 means that the vertices with indexes
-		// 0, 2 and 1 from the vertex buffer compose the 
-		// first triangle of this mesh.
-		static const unsigned short cubeIndices [] =
-		{
-			0,2,1, // -x
-			1,2,3,
+		m_indexCount = m_FBXExporter.m_Indices.size();
 
-			4,5,6, // +x
-			5,7,6,
-
-			0,1,5, // -y
-			0,5,4,
-
-			2,6,7, // +y
-			2,7,3,
-
-			0,4,6, // -z
-			0,6,2,
-
-			1,3,7, // +z
-			1,7,5,
-		};
-
-		m_indexCount = ARRAYSIZE(cubeIndices);
-
-		D3D11_SUBRESOURCE_DATA indexBufferData = {0};
-		indexBufferData.pSysMem = cubeIndices;
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = m_FBXExporter.m_Indices.data();
 		indexBufferData.SysMemPitch = 0;
 		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+		CD3D11_BUFFER_DESC indexBufferDesc(m_FBXExporter.m_Indices.size() * sizeof(unsigned short), D3D11_BIND_INDEX_BUFFER);
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&indexBufferDesc,
 				&indexBufferData,
 				&m_indexBuffer
-				)
-			);
+			)
+		);
 	});
 
+
 	// Once the cube is loaded, the object is ready to be rendered.
-	createCubeTask.then([this] () {
+	loadBoxTask.then([this] () {
 		m_loadingComplete = true;
 	});
 }
@@ -321,4 +430,5 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_constantBuffer.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+	m_FBXExporter.CleanupFbxManager();
 }

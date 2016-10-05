@@ -3,6 +3,7 @@
 #include "..\Common\DeviceResources.h"
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
+#include "FBXExporter.h"
 
 namespace RTAproject
 {
@@ -31,15 +32,21 @@ namespace RTAproject
 
 		// Direct3D resources for cube geometry.
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayout;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayoutAni;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_vertexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_indexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_vertexShader;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_vertexShaderAnimation;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_pixelShader;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_boneOffsetsBuffer;
 
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
+		BoneOffsets							m_boneOffsetsBufferData;
 		uint32	m_indexCount;
+
+		FBXExporter m_FBXExporter;
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
