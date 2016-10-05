@@ -346,8 +346,43 @@ void Sample3DSceneRenderer::Render()
 
 	//End Emilio
 	////////////////////////////////////////////////////////////////////////////
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixIdentity());
+	// Prepare the constant buffer to send it to the graphics device.
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0
+	);
 
+	//Prepare the directional light constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLights.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightData,
+		0,
+		0,
+		0
+	);
 
+	//Prepare the spot light and point light position constant buffer.
+	context->UpdateSubresource1(
+		m_constantBufferLightsPosition.Get(),
+		0,
+		NULL,
+		&m_constantBufferLightPosData,
+		0,
+		0,
+		0
+	);
+
+	//Bind Sampler state
+	context->PSSetSamplers(0, 1, &m_sampleState);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// Each vertex is one instance of the VertexPositionColor struct.
 	UINT stride = sizeof(VertexPositionColor);
 	UINT offset = 0;
