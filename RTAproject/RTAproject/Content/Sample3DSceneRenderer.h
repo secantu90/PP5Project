@@ -4,6 +4,9 @@
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 #include "DDSTextureLoader.h"
+#include <DirectXMath.h>
+#include <vector>
+#include "Model.h"
 
 namespace RTAproject
 {
@@ -54,6 +57,39 @@ namespace RTAproject
 		bool	m_tracking;
 
 		int time;
+
+		//////////////////////////////////////////////////////////////////////////////////////
+		//Emilio
+		//used for camera movement
+		DirectX::XMFLOAT4X4 world, camera, proj;
+
+		//Microsoft::WRL::ComPtr<ID3D11SamplerState>		m_sampleState;
+		//
+		////Earth resources
+		//Model											Earth;
+		//Microsoft::WRL::ComPtr<ID3D11InputLayout>		m_earthInputLayout;
+		//Microsoft::WRL::ComPtr<ID3D11VertexShader>		m_earthVS;
+		//Microsoft::WRL::ComPtr<ID3D11PixelShader>		m_earthPS;
+		//Microsoft::WRL::ComPtr<ID3D11Buffer>			m_earthConstBuff;
+		//WorldWorldInvWorldViewProjTexTransform			m_earthConstBuffData;
+		//EyeFog											m_earthEyeFogConstBuffData;
+		//
+		//
+		//
+		//sky box resources
+		Model											skyBox;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>		m_skyBoxInputLayout;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>		m_skyBoxVS;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>		m_skyBoxPS;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>			m_skyBoxConstBuff;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState>	m_clockwise;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState>	m_counterClockwise;
+		//
+		////used for loading OBJ files
+		//void LoadObject(std::vector<VERTEX3>& interVert, std::vector<unsigned int>& interIndex, const char* file);
+		//
+		//End Emilio
+		/////////////////////////////////////////////////////////////////////////////////////
 	};
 }
 

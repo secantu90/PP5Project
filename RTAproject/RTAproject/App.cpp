@@ -77,6 +77,29 @@ void App::SetWindow(CoreWindow^ window)
 	DisplayInformation::DisplayContentsInvalidated +=
 		ref new TypedEventHandler<DisplayInformation^, Object^>(this, &App::OnDisplayContentsInvalidated);
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//camera control (Emilio)
+	window->PointerPressed +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerPressed);
+
+	window->PointerReleased +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerReleased);
+
+	window->PointerMoved +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerMoved);
+
+	window->KeyDown +=
+		ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::OnKeyDown);
+
+	window->KeyUp +=
+		ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::OnKeyUp);
+
+	window->PointerExited +=
+		ref new Windows::Foundation::TypedEventHandler<Windows::UI::Core::CoreWindow ^, Windows::UI::Core::PointerEventArgs ^>(this, &RTAproject::App::OnPointerExited);
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 	m_deviceResources->SetWindow(window);
 }
 
@@ -120,6 +143,64 @@ void App::Uninitialize()
 }
 
 // Application lifecycle event handlers.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Camera Control(Emilio)
+bool mouseMoved = false;
+float newX = 0;
+float newY = 0;
+bool leftClick = false;
+
+void App::OnPointerPressed(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	newX = 0;
+	newY = 0;
+	leftClick = true;
+	mouseMoved = true;
+}
+
+void App::OnPointerReleased(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	newX = 0;
+	newY = 0;
+	leftClick = false;
+	mouseMoved = true;
+}
+
+void App::OnPointerMoved(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	mouseMoved = true;
+	float X = args->CurrentPoint->Position.X;
+	float Y = args->CurrentPoint->Position.Y;
+	static float prevX = X;
+	static float prevY = Y;
+	newX = X - prevX;
+	newY = Y - prevY;
+	prevX = X;
+	prevY = Y;
+}
+
+/*This function needs to be implimented on Desktop as to prevent a problem where mouse released event doesn't trigger*/
+void RTAproject::App::OnPointerExited(Windows::UI::Core::CoreWindow ^sender, Windows::UI::Core::PointerEventArgs ^args)
+{
+	newX = 0;
+	newY = 0;
+	leftClick = false;
+	mouseMoved = false;
+}
+char keys[256] = {};
+
+void RTAproject::App::OnKeyDown(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::KeyEventArgs ^ args)
+{
+	keys[(unsigned int)args->VirtualKey] = true;
+}
+
+void RTAproject::App::OnKeyUp(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::KeyEventArgs ^ args)
+{
+	keys[(unsigned int)args->VirtualKey] = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void App::OnActivated(CoreApplicationView^ applicationView, IActivatedEventArgs^ args)
 {

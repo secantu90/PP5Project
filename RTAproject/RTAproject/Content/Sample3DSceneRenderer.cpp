@@ -21,6 +21,13 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 {
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
+
+	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
+	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	XMStoreFloat4x4(&camera, XMMatrixLookAtLH(eye, at, up));
+
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 }
 
 // Initializes view parameters when the window size changes.
@@ -44,7 +51,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	// this transform should not be applied.
 
 	// This sample makes use of a right-handed coordinate system using row-major matrices.
-	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovRH(
+	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovLH(
 		fovAngleY,
 		aspectRatio,
 		0.01f,
@@ -61,15 +68,16 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 		);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
+	//static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	//static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	//XMStoreFloat4x4(&camera, XMMatrixLookAtLH(eye, at, up));
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+	//XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 
-	XMFLOAT4X4 identity;
-	XMStoreFloat4x4(&identity, XMMatrixIdentity());
-	m_constantBufferData.world = identity;
+	//XMFLOAT4X4 identity;
+	//XMStoreFloat4x4(&identity, XMMatrixIdentkity());
+	//m_constantBufferData.world = identity;
 
 	m_constantBufferLightData.Ar = 1;
 	m_constantBufferLightData.Ag = 0;
@@ -101,9 +109,22 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 	time = 0;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//Emilio
+extern bool mouseMoved;
+extern float newX;
+extern float newY;
+extern bool leftClick;
+extern char keys[256];
+//End Emilio
+//////////////////////////////////////////////////////////////////////////
+
 // Called once per frame, rotates the cube and calculates the model and view matrices.
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
+	
+
 	//For specular lighting camera tracking
 	m_constantBufferLightData.cX = m_constantBufferData.view._41;
 	m_constantBufferLightData.cY = m_constantBufferData.view._42;
@@ -132,6 +153,66 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	XMFLOAT4X4 temp;
 	XMStoreFloat4x4(&temp, XMMatrixMultiply(XMMatrixScaling(5, 5, 5), XMMatrixIdentity()));
 	m_constantBufferData.model = temp;
+
+	//////////////////////////////////////////////////////////////////////////
+	//Emilio
+	enum CameraMovement
+	{
+		camMoveX = 0,
+		camMoveY,
+		camMoveZ,
+		camPos
+	};
+
+	XMMATRIX newcamera = XMLoadFloat4x4(&camera);
+	//move left
+	if (keys['A'])
+		newcamera.r[camPos] += (newcamera.r[camMoveX] * static_cast<float>(-timer.GetElapsedSeconds()) *5.0f);
+	//move right			   																			
+	if (keys['D'])
+		newcamera.r[camPos] += (newcamera.r[camMoveX] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move up				   																			
+	if (keys['R'])
+		newcamera.r[camPos] += (newcamera.r[camMoveY] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move down				   
+	if (keys['F'])
+		newcamera.r[camPos] += (newcamera.r[camMoveY] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
+	//move forward			  																			
+	if (keys['W'])
+		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(timer.GetElapsedSeconds()) * 5.0f);
+	//move back				   																		 
+	if (keys['S'])
+		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
+
+
+	if (mouseMoved)
+	{
+		// Updates the application state once per frame.
+		if (leftClick)
+		{
+			XMVECTOR pos = newcamera.r[camPos];
+			newcamera.r[camPos] = XMLoadFloat4(&XMFLOAT4(0, 0, 0, 1));
+			newcamera = XMMatrixRotationX(newY * 0.01f) * newcamera * XMMatrixRotationY(newX * 0.01f);
+			newcamera.r[camPos] = pos;
+		}
+	}
+
+	XMStoreFloat4x4(&camera, newcamera);
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(0, newcamera)));
+	mouseMoved = false;
+
+	////create skybox world matrix
+	//XMMATRIX skyBoxWM = XMMatrixIdentity();
+	//skyBoxWM = XMMatrixMultiply(XMMatrixScaling(100.0f, 100.0f, 100.0f), skyBoxWM);
+	//skyBox.WM = skyBoxWM;
+	skyBox.WM.r[3].m128_f32[0] = newcamera.r[camPos].m128_f32[0];
+	skyBox.WM.r[3].m128_f32[1] = newcamera.r[camPos].m128_f32[1];
+	skyBox.WM.r[3].m128_f32[2] = newcamera.r[camPos].m128_f32[2];
+	skyBox.WM.r[3].m128_f32[3] = newcamera.r[camPos].m128_f32[3];
+
+ 
+	//End Emilio
+	//////////////////////////////////////////////////////////////////////////
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -208,6 +289,64 @@ void Sample3DSceneRenderer::Render()
 
 	//Bind Sampler state
 	context->PSSetSamplers(0, 1, &m_sampleState);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//Draw SkyBox
+	//context->RSSetState(m_counterClockwise.Get());
+	context->RSSetState(m_clockwise.Get());
+
+	context->IASetInputLayout(m_skyBoxInputLayout.Get());
+	context->VSSetShader(
+		m_skyBoxVS.Get(),
+		nullptr,
+		0
+		);
+	context->PSSetShader(
+		m_skyBoxPS.Get(),
+		nullptr,
+		0
+		);
+	//context->PSSetSamplers(
+	//	0,
+	//	1,
+	//	m_sampleState.GetAddressOf()
+	//	);
+	//context->PSSetSamplers(
+	//	1,
+	//	1,
+	//	m_sampleState.GetAddressOf()
+	//	);
+	XMMATRIX newSkyBoxWM = XMMatrixTranspose(skyBox.WM);
+	context->PSSetShaderResources(0, 1, skyBox.resourceView.GetAddressOf());
+	skyBox.SetBuffers(context);
+	XMStoreFloat4x4(&m_constantBufferData.model, newSkyBoxWM);
+	context->UpdateSubresource1(
+		m_constantBuffer.Get(),
+		0,
+		NULL,
+		&m_constantBufferData,
+		0,
+		0,
+		0
+		);
+
+	context->VSSetConstantBuffers1(
+		0,
+		1,
+		m_constantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+		);
+	skyBox.Draw(context);
+	//context->RSSetState(m_clockwise.Get());
+	context->RSSetState(m_counterClockwise.Get());
+	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0F, 0);
+
+	//End Emilio
+	////////////////////////////////////////////////////////////////////////////
+
 
 	// Each vertex is one instance of the VertexPositionColor struct.
 	UINT stride = sizeof(VertexPositionColor);
@@ -226,7 +365,6 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	context->IASetInputLayout(m_inputLayout.Get());
 
@@ -287,6 +425,15 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+
+	///////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//Load skyBox tasks
+	auto loadSkyVSTask = DX::ReadDataAsync(L"SkyBoxVS.cso");
+	auto loadSkyPSTask = DX::ReadDataAsync(L"SkyBoxPS.cso");
+
+	//End Emilio
+	/////////////////////////////////////////////////////////////////////////////////
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
@@ -355,6 +502,66 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				)
 			);
 	});
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Emilio
+	//SkyBox VertexShader
+	auto createSkyVSTask = loadSkyVSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateVertexShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_skyBoxVS
+				)
+			);
+		static const D3D11_INPUT_ELEMENT_DESC skyVertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV",	  0, DXGI_FORMAT_R32G32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",	  0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+		};
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateInputLayout(
+				skyVertexDesc,
+				ARRAYSIZE(skyVertexDesc),
+				&fileData[0],
+				fileData.size(),
+				&m_skyBoxInputLayout
+				)
+			);
+	});
+	//SkyBox PixelShader
+	auto createSkyPSTask = loadSkyPSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreatePixelShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_skyBoxPS
+				)
+			);
+
+		CD3D11_BUFFER_DESC constantSkyBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&constantSkyBufferDesc,
+				nullptr,
+				&m_skyBoxConstBuff
+				)
+			);
+	});
+
+	CD3D11_RASTERIZER_DESC skyboxFrontDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	skyboxFrontDesc.FrontCounterClockwise = false;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&skyboxFrontDesc, m_clockwise.GetAddressOf());
+
+	CD3D11_RASTERIZER_DESC skyboxBackDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	skyboxBackDesc.FrontCounterClockwise = true;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&skyboxBackDesc, m_counterClockwise.GetAddressOf());
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	
 	//Creating Sampler
@@ -427,10 +634,19 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			);
 	});
 
+
+	//create the skybox Cube (Emilio)
+	auto createSkyBoxTask = (createSkyPSTask && createSkyVSTask).then([this]() {
+		char* fileName = "Cube.obj";
+		wchar_t* textureName = L"mountains.dds";
+		Model CreateSkyBox(fileName, textureName, m_deviceResources->GetD3DDevice(), XMFLOAT3(0.0f, 0.0f, 0.0f));
+		CreateSkyBox.WM = XMMatrixIdentity();
+		skyBox = CreateSkyBox;
+	});
 	
 
 	// Once the cube is loaded, the object is ready to be rendered.
-	createCubeTask.then([this] () {
+	(createCubeTask && createSkyBoxTask).then([this] () {
 		m_loadingComplete = true;
 	});
 }

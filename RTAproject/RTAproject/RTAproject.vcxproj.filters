@@ -68,12 +68,14 @@
     <ClCompile Include="RTAprojectMain.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="Model.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="RTAprojectMain.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="Model.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -88,5 +90,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="RTAproject_TemporaryKey.pfx" />
+    <None Include="Cube.obj" />
+    <None Include="mountains.dds" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="SkyBoxPS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyBoxVS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
