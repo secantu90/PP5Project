@@ -67,7 +67,10 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="RTAprojectMain.cpp" />
     <ClCompile Include="pch.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="FBXExporter.cpp" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Model.cpp" />
   </ItemGroup>
@@ -75,8 +78,11 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="RTAprojectMain.h" />
     <ClInclude Include="pch.h" />
+<<<<<<< HEAD
     <ClInclude Include="FBXExporter.h" />
     <ClInclude Include="Utilities.h" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
   </ItemGroup>
@@ -87,13 +93,17 @@
     <Image Include="brownishDirt_seamless.dds">
       <Filter>Assets</Filter>
     </Image>
+<<<<<<< HEAD
     <Image Include="mountains.dds" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RTAproject_TemporaryKey.pfx" />
+<<<<<<< HEAD
     <None Include="Box_BindPose.fbx">
       <Filter>Assets</Filter>
     </None>
@@ -102,17 +112,26 @@
     <FxCompile Include="VertexAnimationShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+=======
+    <None Include="Cube.obj" />
+    <None Include="mountains.dds" />
+  </ItemGroup>
+  <ItemGroup>
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <FxCompile Include="SkyBoxPS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
     <FxCompile Include="SkyBoxVS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+<<<<<<< HEAD
     <FxCompile Include="SimplePS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="Cube.obj" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
   </ItemGroup>
 </Project>

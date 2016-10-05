@@ -34,8 +34,8 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.10586.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -231,13 +231,27 @@
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
     <Image Include="brownishDirt_seamless.dds" />
+<<<<<<< HEAD
     <Image Include="mountains.dds" />
+=======
+    <None Include="mountains.dds">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+<<<<<<< HEAD
     <ClInclude Include="FBXExporter.h" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <ClInclude Include="Model.h" />
     <ClInclude Include="RTAprojectMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
@@ -252,7 +266,10 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="FBXExporter.cpp" />
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="RTAprojectMain.cpp" />
     <ClCompile Include="Content\SampleFpsTextRenderer.cpp" />
@@ -279,6 +296,7 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
+<<<<<<< HEAD
     <FxCompile Include="SimplePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
@@ -287,6 +305,8 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+=======
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
     <FxCompile Include="SkyBoxPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
@@ -315,6 +335,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
+<<<<<<< HEAD
     <FxCompile Include="VertexAnimationShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Vertex</ShaderType>
@@ -334,6 +355,13 @@
     <None Include="Cube.obj">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
       <FileType>Document</FileType>
+=======
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Cube.obj">
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+>>>>>>> 3dd00589c8e0f44917eb17046cd962b3c24b4487
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
