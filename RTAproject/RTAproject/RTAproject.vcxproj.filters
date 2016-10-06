@@ -97,6 +97,7 @@
     <None Include="Box_BindPose.fbx">
       <Filter>Assets</Filter>
     </None>
+    <None Include="Cube.obj" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexAnimationShader.hlsl">
@@ -111,8 +112,5 @@
     <FxCompile Include="SimplePS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Cube.obj" />
   </ItemGroup>
 </Project>

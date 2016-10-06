@@ -104,8 +104,8 @@
     <PackageCertificateKeyFile>RTAproject_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\lib\vs2015store\x64\debug;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\Autodesk\FBX\FBX SDK\U2017.0.1\lib\vs2015store\x64\debug;C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\lib\vs2015store\x64\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Program Files\Autodesk\FBX\FBX SDK\U2017.0.1\include;C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\lib\vs2015store\x86\debug;$(LibraryPath)</LibraryPath>
