@@ -240,6 +240,7 @@
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="FBXExporter.h" />
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="RTAprojectMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />

@@ -79,6 +79,7 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="FileManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
