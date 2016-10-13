@@ -81,6 +81,7 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BindPose.h" />
   </ItemGroup>
@@ -114,6 +115,12 @@
       <Filter>Content</Filter>
     </FxCompile>
     <FxCompile Include="SimplePS.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="GeometryShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
   </ItemGroup>

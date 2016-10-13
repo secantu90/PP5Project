@@ -14,3 +14,5 @@
 #include <agile.h>
 #include <concrt.h>
 #include <Windows.h>
+#include <vector>
+#include <map>

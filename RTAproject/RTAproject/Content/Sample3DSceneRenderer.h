@@ -37,14 +37,22 @@ namespace RTAproject
 		// Direct3D resources for cube geometry.
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayout;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayoutAni;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_geoinputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_vpconstantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_vertexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_vertexBufferBox;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_vertexBufferQuad;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_indexBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_indexBufferBox;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_indexBufferQuad;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_modelconstantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_vertexShader;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_geovertexShader;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_vertexShaderAnimation;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_pixelShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_pixelShaderSimple;
+		Microsoft::WRL::ComPtr<ID3D11GeometryShader>	m_geometryShader;
+		Microsoft::WRL::ComPtr<ID3D11GeometryShader>	m_nullShader;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_boneOffsetsBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBufferLights;
@@ -55,12 +63,15 @@ namespace RTAproject
 
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
+		ModelConstantBuffer				m_modelconstantBufferData;
+		ViewProjectionConstantBuffer	m_geoconstantBufferData;
 		BoneOffsets							m_boneOffsetsBufferData;
 		LightBuffer							m_constantBufferLightData;
 		PLightPosBuffer						m_constantBufferLightPosData;
 
 		uint32	m_indexCount;
 		uint32	m_indexCountBox;
+		uint32  m_indexCountQuad;
 
 		FBXExporter m_FBXExporter;
 

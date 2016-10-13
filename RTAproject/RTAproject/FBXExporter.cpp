@@ -149,7 +149,7 @@ void FBXExporter::ProcessJointsAndAnimations(FbxNode* inNode)
 
 			currCluster->GetTransformMatrix(transformMatrix);
 			currCluster->GetTransformLinkMatrix(transformLinkMatrix);
-			globalBindposeInverseMatrix = /*transformLinkMatrix.Inverse() **/ transformMatrix * geometryTransform;
+			globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
 
 			// Update the information in mSkeleton
 			ConvertMatrixFtoX(globalBindposeInverseMatrix, m_Skeleton.m_joints[currJointIndex].m_globalBindposeInverse);

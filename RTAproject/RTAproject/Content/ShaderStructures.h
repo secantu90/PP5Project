@@ -9,14 +9,29 @@ namespace RTAproject
 		DirectX::XMFLOAT4X4 view;
 		DirectX::XMFLOAT4X4 projection;
 	};
+	//Geometry Shader constant buffer
+	struct ViewProjectionConstantBuffer
+	{
+		DirectX::XMFLOAT4X4 view;
+		DirectX::XMFLOAT4X4 projection;
+	};
 
+	//Geometry vertex shader constant buffer
+	struct ModelConstantBuffer
+	{
+		DirectX::XMFLOAT4X4 model;
+	};
 	// Used to send per-vertex data to the vertex shader.
 	struct VertexPositionColor
 	{
 		DirectX::XMFLOAT3 pos;
 		DirectX::XMFLOAT2 uv;
 	};
-
+	struct GeoVertexPositionColor
+	{
+		DirectX::XMFLOAT3 pos;
+		DirectX::XMFLOAT3 color;
+	};
 
 
 	////////////////////////////////////////////////
