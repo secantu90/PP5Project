@@ -5,6 +5,7 @@
 #include "Content\ShaderStructures.h"
 #include <vector>
 
+struct Skeleton;
 struct BlendingIndexWeightPair
 {
 	unsigned int mBlendingIndex;
@@ -29,8 +30,17 @@ struct CtrlPoint
 };
 
 
+
 struct Keyframe
 {
+	///////////////////////////////////////
+	//Emilio Refactoring
+	int m_numBones;
+	float m_time;
+	Skeleton* skeleton;
+	//End Emilio
+	///////////////////////////////////////
+
 	long long m_frameNum;
 	DirectX::XMFLOAT4X4 m_worldMatrix;
 	Keyframe* m_nextFrame;
@@ -40,6 +50,13 @@ struct Keyframe
 
 struct Joint
 {
+
+	///////////////////////////////////////
+	//Emilio Refactoring
+	DirectX::XMFLOAT4 m_rotation;
+	DirectX::XMFLOAT3 m_translation;
+	//End Emilio
+	///////////////////////////////////////
 	std::string m_jointName;
 	int m_parentIndex;
 	DirectX::XMFLOAT4X4 m_globalBindposeInverse;
@@ -62,8 +79,16 @@ struct Joint
 		}
 	}
 };
-
 struct Skeleton
 {
 	std::vector<Joint> m_joints;
+};
+
+//Created by Emilio
+enum ANIM_TYPE
+{
+	LOOP = 0,
+	RETURN_DEFAULT,
+	RETURN_LAST,
+	RUN_ONCE
 };
