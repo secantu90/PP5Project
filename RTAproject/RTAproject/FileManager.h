@@ -118,7 +118,7 @@ bool Filemanager::ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVe
 		jointdata[i].m_node = _skeleton[i].m_node;
 		jointdata[i].m_parentIndex = _skeleton[i].m_parentIndex;
 	}
-	for (size_t i = 0; i < m_Vertices.size(), i++)
+	for (size_t i = 0; i < m_Vertices.size(); i++)
 	{
 		vertdata[i].blendingindex = m_Vertices[i].blendingindex;
 		vertdata[i].blendingweight = m_Vertices[i].blendingweight;
