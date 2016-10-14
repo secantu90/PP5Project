@@ -124,4 +124,9 @@
       <Filter>Content</Filter>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <MeshContentTask Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </MeshContentTask>
+  </ItemGroup>
 </Project>

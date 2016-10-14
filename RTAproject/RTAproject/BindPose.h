@@ -13,3 +13,4 @@ public:
 	void init(int _numBones,std::vector<DirectX::XMFLOAT4X4>& _matrix);
 };
 
+                                         

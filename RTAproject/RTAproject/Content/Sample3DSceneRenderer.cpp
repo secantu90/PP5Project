@@ -983,7 +983,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	auto loadBoxTask = (createPSTask && createVSTask).then([this]() {
 
 		this->m_FBXExporter.Initialize();
-		this->m_FBXExporter.LoadScene("Box_BindPose.fbx");
+		this->m_FBXExporter.LoadScene("Box_Idle.fbx");
 
 		m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
 

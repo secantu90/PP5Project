@@ -6,6 +6,8 @@
 #include <vector>
 
 struct Skeleton;
+struct Boint;
+
 struct BlendingIndexWeightPair
 {
 	unsigned int mBlendingIndex;
@@ -28,18 +30,30 @@ struct CtrlPoint
 		mBlendingInfo.reserve(4);
 	}
 };
-
-
-
-struct Keyframe
+struct UMLKeyFrame
 {
 	///////////////////////////////////////
 	//Emilio Refactoring
 	int m_numBones;
-	float m_time;
-	Skeleton* skeleton;
+	double m_time;
+	std::vector<Boint> m_bones;
 	//End Emilio
 	///////////////////////////////////////
+};
+
+struct Boint
+{
+	///////////////////////////////////////
+	//Emilio Refactoring
+	DirectX::XMFLOAT4X4 m_boneMatrix;
+	//End Emilio
+	///////////////////////////////////////
+};
+
+struct Keyframe
+{
+	double m_time;
+
 
 	long long m_frameNum;
 	DirectX::XMFLOAT4X4 m_worldMatrix;
@@ -48,15 +62,10 @@ struct Keyframe
 	Keyframe() : m_nextFrame(nullptr) {}
 };
 
+
+
 struct Joint
 {
-
-	///////////////////////////////////////
-	//Emilio Refactoring
-	DirectX::XMFLOAT4 m_rotation;
-	DirectX::XMFLOAT3 m_translation;
-	//End Emilio
-	///////////////////////////////////////
 	std::string m_jointName;
 	int m_parentIndex;
 	DirectX::XMFLOAT4X4 m_globalBindposeInverse;
