@@ -181,6 +181,19 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
 
 
+	//AdvanceAnimation
+	if (keys[VK_SPACE] || keys['1'])
+	{
+		currentFrame++;
+		if (currentFrame >= m_FBXExporter.m_animation.m_numKeyFrames)
+		{
+			currentFrame = 0;
+		}
+
+		keys['1'] = false;
+	}
+
+
 	if (mouseMoved)
 	{
 		// Updates the application state once per frame.
@@ -552,7 +565,7 @@ void Sample3DSceneRenderer::Render()
 	//Dallas
 	// Prepare the constant buffer to send it to the graphics device.
 	static int angle = 0;
-	++angle;
+	//++angle;
 	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
 
 	context->UpdateSubresource1(
@@ -565,21 +578,11 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_keyframe->m_worldMatrix)));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
 	
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse)));
-
-	//m_boneOffsetsBufferData.offsets[0] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[1] = m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[2] = m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[3] = m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse;
-
 	context->UpdateSubresource1(
 		m_boneOffsetsBuffer.Get(),
 		0,
