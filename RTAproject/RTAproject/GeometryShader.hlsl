@@ -17,10 +17,10 @@ struct GeometryShaderInput
 void main(point  GeometryShaderInput input[1], inout TriangleStream< GeometryShaderOutput > output)
 {
 	GeometryShaderOutput v[4];
-	v[0].posH = float4(input[0].pos + float3(1.0f, 0.0f, 1.0f), 1.0f);
-	v[1].posH = float4(input[0].pos + float3(-1.0f, 0.0f, 1.0f), 1.0f);
-	v[2].posH = float4(input[0].pos + float3(1.0f, 0.0f, -1.0f), 1.0f);
-	v[3].posH = float4(input[0].pos + float3(-1.0f, 0.0f, -1.0f), 1.0f);
+	v[0].posH = input[0].pos + float4(1.0f, 0.0f, 1.0f, 1.0f);
+	v[1].posH = input[0].pos + float4(-1.0f, 0.0f, 1.0f, 1.0f);
+	v[2].posH = input[0].pos + float4(1.0f, 0.0f, -1.0f, 1.0f);
+	v[3].posH = input[0].pos + float4(-1.0f, 0.0f, -1.0f, 1.0f);
 
 	GeometryShaderOutput gout;
 	[unroll]
