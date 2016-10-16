@@ -256,6 +256,16 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 			temp.uv = UV[j][0];
 			temp.uv.y = 1.0f - temp.uv.y;
 
+			temp.blendingWeight.x = currCtrlPoint->mBlendingInfo[0].mBlendingWeight;
+			temp.blendingWeight.y = currCtrlPoint->mBlendingInfo[1].mBlendingWeight;
+			temp.blendingWeight.z = currCtrlPoint->mBlendingInfo[2].mBlendingWeight;
+			temp.blendingWeight.w = currCtrlPoint->mBlendingInfo[3].mBlendingWeight;
+
+			temp.blendingIndex.x = static_cast<float>(currCtrlPoint->mBlendingInfo[0].mBlendingIndex);
+			temp.blendingIndex.y = static_cast<float>(currCtrlPoint->mBlendingInfo[1].mBlendingIndex);
+			temp.blendingIndex.z = static_cast<float>(currCtrlPoint->mBlendingInfo[2].mBlendingIndex);
+			temp.blendingIndex.w = static_cast<float>(currCtrlPoint->mBlendingInfo[3].mBlendingIndex);
+
 
 			for (unsigned int i = 0; i < currCtrlPoint->mBlendingInfo.size(); ++i)
 			{
@@ -483,22 +493,17 @@ void FBXExporter::Optimize()
 
 	m_Vertices.clear();
 	m_Vertices = uniqueVertices;
-	for (unsigned int i = 0; i < m_Indices.size(); ++i)
-	{
-		m_Vertices[m_Indices[i]].blendingIndex.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingWeight);
-	}
 	uniqueVertices.clear();
+
+	m_Skeleton.m_joints[0].m_firstFrame = m_Skeleton.m_joints[0].m_keyframe;
+	m_Skeleton.m_joints[1].m_firstFrame = m_Skeleton.m_joints[1].m_keyframe;
+	m_Skeleton.m_joints[2].m_firstFrame = m_Skeleton.m_joints[2].m_keyframe;
+	m_Skeleton.m_joints[3].m_firstFrame = m_Skeleton.m_joints[3].m_keyframe;
 	ConvertToUML();
+	m_Skeleton.m_joints[0].m_keyframe = m_Skeleton.m_joints[0].m_firstFrame;
+	m_Skeleton.m_joints[1].m_keyframe = m_Skeleton.m_joints[1].m_firstFrame;
+	m_Skeleton.m_joints[2].m_keyframe = m_Skeleton.m_joints[2].m_firstFrame;
+	m_Skeleton.m_joints[3].m_keyframe = m_Skeleton.m_joints[3].m_firstFrame;
 }
 
 void FBXExporter::ConvertToLHS()

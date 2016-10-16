@@ -6,6 +6,7 @@ struct PixelShaderInput
 	float4 norm : NORMALS;
 	float3 sLightPos : TEXCOORD1;
 	float4 worldPosition : TEXCOORD2;
+	float1 ImageRef : TEXCOORD3;
 };
 
 cbuffer LightBuffer : register(b0)
@@ -23,7 +24,7 @@ cbuffer LightPositionBuffer : register(b1)
 	float4 SL_Position;
 }
 
-texture2D baseTexture : register(t0);
+texture2D baseTexture[2] : register(t0);
 
 SamplerState filter : register(s0);
 
@@ -45,7 +46,15 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		color = saturate(color);
 	}
 
-	float4 finalColor = baseTexture.Sample(filter, input.tex);
+	float4 finalColor1;
+	if (input.ImageRef == 0)
+	{
+		finalColor1 = baseTexture[0].Sample(filter, input.tex);
+	}
+	else
+	{
+		finalColor1 = baseTexture[1].Sample(filter, input.tex);
+	}
 
 	//float4 finalColor = 0;
 	//finalColor.x = 1;
@@ -97,7 +106,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	specular = pow(saturate(dot(input.norm, normalize(reflection))), 32);
 	float4 result2 = diffuseColor * .7f * specular;	
 
-	color = (color + result + color2) * finalColor;
+	color = (color + result + color2) * finalColor1;
+
 
 	color = saturate(color + result2);
 

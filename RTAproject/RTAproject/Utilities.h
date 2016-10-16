@@ -70,6 +70,7 @@ struct Joint
 	int m_parentIndex;
 	DirectX::XMFLOAT4X4 m_globalBindposeInverse;
 	Keyframe* m_keyframe;
+	Keyframe* m_firstFrame;
 	FbxNode* m_node;
 
 	Joint() : m_node(nullptr), m_keyframe(nullptr)

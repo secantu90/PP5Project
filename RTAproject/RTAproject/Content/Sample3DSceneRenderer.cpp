@@ -132,14 +132,14 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	{
 		m_constantBufferLightPosData.sX += .001f;
 		m_constantBufferLightPosData.z -= .001f;
-		m_constantBufferLightData.z = -1;
+		m_constantBufferLightData.z = 1;
 		m_constantBufferLightData.sZ = -.75f;
 	}
 	else
 	{
 		m_constantBufferLightPosData.sX -= .001f;
 		m_constantBufferLightPosData.z += .001f;
-		m_constantBufferLightData.z = 1;
+		m_constantBufferLightData.z = -1;
 		m_constantBufferLightData.sZ = .75f;
 		if (timeTemp - time > 9)
 			time = timeTemp;
@@ -179,6 +179,19 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	//move back				   																		 
 	if (keys['S'])
 		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
+
+
+	//AdvanceAnimation
+	if (keys[VK_SPACE] || keys['1'])
+	{
+		currentFrame++;
+		if (currentFrame >= m_FBXExporter.m_animation.m_numKeyFrames)
+		{
+			currentFrame = 0;
+		}
+
+		keys['1'] = false;
+	}
 
 
 	if (mouseMoved)
@@ -537,7 +550,7 @@ void Sample3DSceneRenderer::Render()
 		0
 	);
 
-	context->PSSetShaderResources(0, 1, &m_shaderView);
+	context->PSSetShaderResources(0, 2, m_shaderView);
 
 
 	// Draw the objects.
@@ -552,7 +565,7 @@ void Sample3DSceneRenderer::Render()
 	//Dallas
 	// Prepare the constant buffer to send it to the graphics device.
 	static int angle = 0;
-	++angle;
+	//++angle;
 	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
 
 	context->UpdateSubresource1(
@@ -565,21 +578,11 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_keyframe->m_worldMatrix)));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_keyframe->m_worldMatrix)));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
 	
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixMultiply(DirectX::XMMatrixInverse(0, XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse)), XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse)));
-
-	//m_boneOffsetsBufferData.offsets[0] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[1] = m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[2] = m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse;
-	//m_boneOffsetsBufferData.offsets[3] = m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse;
-
 	context->UpdateSubresource1(
 		m_boneOffsetsBuffer.Get(),
 		0,
@@ -637,7 +640,7 @@ void Sample3DSceneRenderer::Render()
 
 	// Attach our pixel shader.
 	context->PSSetShader(
-		m_pixelShaderSimple.Get(),
+		m_pixelShader.Get(),// m_pixelShaderSimple.Get(),
 		nullptr,
 		0
 		);
@@ -824,7 +827,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "BINDICIES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "BWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -939,7 +942,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		HRESULT hr;
 
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"energy_seamless.dds", nullptr, &m_shaderView[1]);
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = cubeVertices;
@@ -1092,8 +1096,11 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
-	if (m_shaderView != NULL)
-		m_shaderView->Release();
+	for (int i = 0; i < 2; ++i)
+	{
+		if (m_shaderView[i] != NULL)
+			m_shaderView[i]->Release();
+	}
 	if (m_sampleState != NULL)
 		m_sampleState->Release();
 }
