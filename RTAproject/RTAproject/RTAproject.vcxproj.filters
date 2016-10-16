@@ -106,6 +106,9 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Cube.obj" />
+    <None Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexAnimationShader.hlsl">
@@ -126,10 +129,5 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <MeshContentTask Include="Box_Idle.fbx">
-      <Filter>Assets</Filter>
-    </MeshContentTask>
   </ItemGroup>
 </Project>
