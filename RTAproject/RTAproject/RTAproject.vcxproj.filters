@@ -72,6 +72,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="BindPose.cpp" />
+    <ClCompile Include="Interpolator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -84,6 +85,7 @@
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BindPose.h" />
+    <ClInclude Include="Interpolator.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -103,6 +105,9 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Cube.obj" />
+    <None Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexAnimationShader.hlsl">
@@ -123,10 +128,5 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <MeshContentTask Include="Box_Idle.fbx">
-      <Filter>Assets</Filter>
-    </MeshContentTask>
   </ItemGroup>
 </Project>
