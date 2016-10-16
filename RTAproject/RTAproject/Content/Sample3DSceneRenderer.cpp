@@ -181,6 +181,19 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
 
 
+	//AdvanceAnimation
+	if (keys[VK_SPACE] || keys['1'])
+	{
+		currentFrame++;
+		if (currentFrame >= m_FBXExporter.m_animation.m_numKeyFrames)
+		{
+			currentFrame = 0;
+		}
+
+		keys['1'] = false;
+	}
+
+
 	if (mouseMoved)
 	{
 		// Updates the application state once per frame.
@@ -285,6 +298,8 @@ void Sample3DSceneRenderer::Render()
 		0
 	);
 
+
+
 	//Bind Sampler state
 	context->PSSetSamplers(0, 1, &m_sampleState);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -344,6 +359,97 @@ void Sample3DSceneRenderer::Render()
 
 	//End Emilio
 	////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////
+	//Antonio
+	////////////
+	XMStoreFloat4x4(&m_modelconstantBufferData.model, DirectX::XMMatrixIdentity());
+	m_geoconstantBufferData.projection = m_constantBufferData.projection;
+	m_geoconstantBufferData.view = m_constantBufferData.view;
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+	context->IASetVertexBuffers(
+		0,
+		1,
+		m_vertexBufferQuad.GetAddressOf(),
+		&stride,
+		&offset
+	);
+
+	context->IASetIndexBuffer(
+		m_indexBufferQuad.Get(),
+		DXGI_FORMAT_R16_UINT, // Each index is one 16-bit unsigned integer (short).
+		0
+	);
+
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	context->IASetInputLayout(m_geoinputLayout.Get());
+	context->UpdateSubresource1(
+		m_modelconstantBuffer.Get(),
+		0,
+		NULL,
+		&m_modelconstantBufferData,
+		0,
+		0,
+		0
+	);
+	context->UpdateSubresource1(
+		m_vpconstantBuffer.Get(),
+		0,
+		NULL,
+		&m_geoconstantBufferData,
+		0,
+		0,
+		0
+	);
+	context->VSSetShader(
+		m_geovertexShader.Get(),
+		nullptr,
+		0
+	);
+
+	context->PSSetShader(
+		m_pixelShaderSimple.Get(),
+		nullptr,
+		0
+	);
+
+	context->VSSetConstantBuffers1(
+		0,
+		1,
+		m_modelconstantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
+	context->GSSetConstantBuffers1(
+		0,
+		1,
+		m_vpconstantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
+	context->GSSetShader(
+		m_geometryShader.Get(),
+		nullptr,
+		0
+	);
+
+	context->DrawIndexed(
+		m_indexCountQuad,
+		0,
+		0
+	);
+	m_nullShader = nullptr;
+	context->GSSetShader(
+		m_nullShader.Get(),
+		nullptr,
+		0
+	);
+	//End Antonio
+	////////////////////////////////////////////////////////////////////////////
+
 	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixIdentity());
 
 
@@ -384,8 +490,8 @@ void Sample3DSceneRenderer::Render()
 	context->PSSetSamplers(0, 1, &m_sampleState);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	// Each vertex is one instance of the VertexPositionColor struct.
-	UINT stride = sizeof(VertexPositionColor);
-	UINT offset = 0;
+	 stride = sizeof(VertexPositionColor);
+	 offset = 0;
 	context->IASetVertexBuffers(
 		0,
 		1,
@@ -453,14 +559,13 @@ void Sample3DSceneRenderer::Render()
 		0,
 		0
 	);
-
-
+	
 
 	///////////////////////////////////////////////////
 	//Dallas
 	// Prepare the constant buffer to send it to the graphics device.
 	static int angle = 0;
-	++angle;
+	//++angle;
 	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
 
 	context->UpdateSubresource1(
@@ -473,15 +578,11 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixMultiply(DirectX::XMMatrixInverse(0,XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse)), XMLoadFloat4x4(&m_constantBufferData.model)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixMultiply(DirectX::XMMatrixInverse(0,XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse)), XMLoadFloat4x4(&m_constantBufferData.model)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixMultiply(DirectX::XMMatrixInverse(0,XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse)), XMLoadFloat4x4(&m_constantBufferData.model)));
-	//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixMultiply(DirectX::XMMatrixInverse(0,XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse)), XMLoadFloat4x4(&m_constantBufferData.model)));
-	m_boneOffsetsBufferData.offsets[0] = m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse;
-	m_boneOffsetsBufferData.offsets[1] = m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse;
-	m_boneOffsetsBufferData.offsets[2] = m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse;
-	m_boneOffsetsBufferData.offsets[3] = m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse;
-
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
+	
 	context->UpdateSubresource1(
 		m_boneOffsetsBuffer.Get(),
 		0,
@@ -552,7 +653,7 @@ void Sample3DSceneRenderer::Render()
 		);
 	//End Dallas
 	///////////////////////////////////////////////////
-
+	
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources()
@@ -571,7 +672,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	//End Emilio
 	/////////////////////////////////////////////////////////////////////////////////
 
-
+	////////////////////////////////////////////////////////////////
+	//Antonio
+	//Geometry
+	auto loadGSTask = DX::ReadDataAsync(L"GeometryShader.cso");
+	auto loadGVSTask = DX::ReadDataAsync(L"VertexShader.cso");
+	//end
+	///////////////////////////////////////////////////////////////
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
 		DX::ThrowIfFailed(
@@ -599,7 +706,44 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			)
 		);
 	});
+	auto createGVSTask = loadGVSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateVertexShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_geovertexShader
+			)
+		);
 
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				&fileData[0],
+				fileData.size(),
+				&m_geoinputLayout
+			)
+		);
+	});
+	auto createGSTask = loadGSTask.then([this](const std::vector<byte>& fileData) {
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateGeometryShader(
+				&fileData[0],
+				fileData.size(),
+				nullptr,
+				&m_geometryShader
+			)
+		);
+
+
+	});
 	// After the pixel shader file is loaded, create the shader and constant buffer.
 	auto createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData) {
 		DX::ThrowIfFailed(
@@ -636,6 +780,23 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&constantBufferDesc3,
 				nullptr,
 				&m_constantBufferLightsPosition
+			)
+		);
+
+		CD3D11_BUFFER_DESC vpconstantBufferDesc(sizeof(ViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&vpconstantBufferDesc,
+				nullptr,
+				&m_vpconstantBuffer
+			)
+		);
+		CD3D11_BUFFER_DESC modelconstantBufferDesc(sizeof(ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&modelconstantBufferDesc,
+				nullptr,
+				&m_modelconstantBuffer
 			)
 		);
 	});
@@ -826,7 +987,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	auto loadBoxTask = (createPSTask && createVSTask).then([this]() {
 
 		this->m_FBXExporter.Initialize();
-		this->m_FBXExporter.LoadScene("Box_BindPose.fbx");
+		this->m_FBXExporter.LoadScene("Box_Idle.fbx");
 
 		m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
 
@@ -865,6 +1026,47 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&m_indexBufferBox
 			)
 		);
+
+		// point to quad (Antonio)
+		static const GeoVertexPositionColor QuadVert[] =
+		{
+			{ XMFLOAT3(0.0f, -5.0f, 0.0f), XMFLOAT3(1.0f,0.0f,0.0f) }
+
+		};
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData1 = { 0 };
+		vertexBufferData.pSysMem = QuadVert;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc1(sizeof(QuadVert), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&vertexBufferDesc,
+				&vertexBufferData,
+				&m_vertexBufferQuad
+			)
+		);
+
+		static const unsigned short QuadIndex[] =
+		{
+			0
+		};
+
+		m_indexCountQuad = ARRAYSIZE(QuadIndex);
+
+		D3D11_SUBRESOURCE_DATA indexBufferData1 = { 0 };
+		indexBufferData.pSysMem = QuadIndex;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc1(sizeof(QuadIndex), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&indexBufferDesc,
+				&indexBufferData,
+				&m_indexBufferQuad
+			)
+		);
+
 	});
 
 

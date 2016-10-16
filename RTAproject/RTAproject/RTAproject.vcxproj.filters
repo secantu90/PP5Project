@@ -70,6 +70,8 @@
     <ClCompile Include="FBXExporter.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="BindPose.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -79,6 +81,9 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="BindPose.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -115,5 +120,16 @@
     <FxCompile Include="SimplePS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+    <FxCompile Include="GeometryShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>Content</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MeshContentTask Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </MeshContentTask>
   </ItemGroup>
 </Project>

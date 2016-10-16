@@ -2,6 +2,9 @@
 #include <map>
 #include "Utilities.h"
 #include "..\Content\ShaderStructures.h"
+#include "Animation.h"
+#include "BindPose.h"
+
 using namespace RTAproject;
 
 class FBXExporter
@@ -22,7 +25,13 @@ public:
 
 	FbxLongLong m_AnimationLength;
 	std::string m_AnimationName;
-
+	////////////////////////
+	//Emilio
+	Animation m_animation;
+	BindPose m_bindPose;
+	std::vector<DirectX::XMFLOAT4X4> m_convertToBindPose;
+	//End Emilio
+	////////////////////////
 	FBXExporter();
 	~FBXExporter();
 	bool Initialize();
@@ -55,5 +64,8 @@ public:
 	void ProcessSkeletonHierarchy(FbxNode* inRootNode);
 	void ProcessSkeletonHierarchyRecursively(FbxNode* inNode, int myIndex, int inParentIndex);
 
+
+
+	void ConvertToUML();
 };
 
