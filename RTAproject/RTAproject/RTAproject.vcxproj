@@ -231,6 +231,7 @@
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
     <Image Include="brownishDirt_seamless.dds" />
+    <Image Include="energy_seamless.dds" />
     <Image Include="mountains.dds" />
   </ItemGroup>
   <ItemGroup>

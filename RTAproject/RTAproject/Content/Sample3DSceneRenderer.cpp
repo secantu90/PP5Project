@@ -132,14 +132,14 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	{
 		m_constantBufferLightPosData.sX += .001f;
 		m_constantBufferLightPosData.z -= .001f;
-		m_constantBufferLightData.z = -1;
+		m_constantBufferLightData.z = 1;
 		m_constantBufferLightData.sZ = -.75f;
 	}
 	else
 	{
 		m_constantBufferLightPosData.sX -= .001f;
 		m_constantBufferLightPosData.z += .001f;
-		m_constantBufferLightData.z = 1;
+		m_constantBufferLightData.z = -1;
 		m_constantBufferLightData.sZ = .75f;
 		if (timeTemp - time > 9)
 			time = timeTemp;
@@ -444,7 +444,7 @@ void Sample3DSceneRenderer::Render()
 		0
 	);
 
-	context->PSSetShaderResources(0, 1, &m_shaderView);
+	context->PSSetShaderResources(0, 2, m_shaderView);
 
 
 	// Draw the objects.
@@ -539,7 +539,7 @@ void Sample3DSceneRenderer::Render()
 
 	// Attach our pixel shader.
 	context->PSSetShader(
-		m_pixelShaderSimple.Get(),
+		m_pixelShader.Get(),// m_pixelShaderSimple.Get(),
 		nullptr,
 		0
 		);
@@ -666,7 +666,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "BINDICIES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "BWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -781,7 +781,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		HRESULT hr;
 
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"energy_seamless.dds", nullptr, &m_shaderView[1]);
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = cubeVertices;
@@ -893,8 +894,11 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
-	if (m_shaderView != NULL)
-		m_shaderView->Release();
+	for (int i = 0; i < 2; ++i)
+	{
+		if (m_shaderView[i] != NULL)
+			m_shaderView[i]->Release();
+	}
 	if (m_sampleState != NULL)
 		m_sampleState->Release();
 }

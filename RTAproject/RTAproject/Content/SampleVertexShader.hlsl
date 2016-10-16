@@ -22,6 +22,7 @@ struct PixelShaderInput
 	float4 norm : NORMALS;
 	float3 sLightPos : TEXCOORD1;
 	float4 worldPosition : TEXCOORD2;
+	float1 ImageRef : TEXCOORD3;
 };
 
 // Simple shader to do vertex processing on the GPU.
@@ -55,6 +56,8 @@ PixelShaderInput main(VertexShaderInput input)
 	// Pass the color through without modification.
 	//output.color = input.color;
 	output.tex = input.tex;
+
+	output.ImageRef = 0;
 
 	return output;
 }

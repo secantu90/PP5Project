@@ -49,7 +49,7 @@ namespace RTAproject
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_boneOffsetsBuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBufferLights;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBufferLightsPosition;
-		ID3D11ShaderResourceView*					m_shaderView = NULL;
+		ID3D11ShaderResourceView*					m_shaderView[2];
 		ID3D11SamplerState*						    m_sampleState = NULL;
 
 
