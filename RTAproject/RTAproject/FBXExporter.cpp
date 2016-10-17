@@ -5,6 +5,7 @@ using namespace DirectX;
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include "Interpolator.h"
 
 FBXExporter::FBXExporter()
 {
@@ -175,15 +176,17 @@ void FBXExporter::ProcessJointsAndAnimations(FbxNode* inNode)
 			FbxTime end = takeInfo->mLocalTimeSpan.GetStop();
 			m_AnimationLength = end.GetFrameCount(FbxTime::eFrames24) - start.GetFrameCount(FbxTime::eFrames24) + 1;
 			Keyframe** currAnim = &m_Skeleton.m_joints[currJointIndex].m_keyframe;
-
-			for (FbxLongLong i = start.GetFrameCount(FbxTime::eFrames24); i <= end.GetFrameCount(FbxTime::eFrames24); ++i)
+			m_animation.init(static_cast<int>(end.GetFrameCount(FbxTime::eFrames24)), ANIM_TYPE::LOOP);
+			m_animation.m_totalTime = static_cast<float>(m_AnimationLength);
+			for (FbxLongLong i = start.GetFrameCount(FbxTime::eFrames24); i <= m_animation.m_numKeyFrames; ++i)
 			{
 				FbxTime currTime;
 				currTime.SetFrame(i, FbxTime::eFrames24);
 				*currAnim = new Keyframe();
 				(*currAnim)->m_frameNum = i;
+				(*currAnim)->m_time = currTime.GetSecondDouble();
 				FbxAMatrix currentTransformOffset = inNode->EvaluateGlobalTransform(currTime) * geometryTransform;
-				
+
 				ConvertMatrixFtoX(currentTransformOffset.Inverse() * currCluster->GetLink()->EvaluateGlobalTransform(currTime), (*currAnim)->m_worldMatrix);
 				currAnim = &((*currAnim)->m_nextFrame);
 			}
@@ -252,6 +255,16 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 			temp.normal = normal[j];
 			temp.uv = UV[j][0];
 			temp.uv.y = 1.0f - temp.uv.y;
+
+			temp.blendingWeight.x = currCtrlPoint->mBlendingInfo[0].mBlendingWeight;
+			temp.blendingWeight.y = currCtrlPoint->mBlendingInfo[1].mBlendingWeight;
+			temp.blendingWeight.z = currCtrlPoint->mBlendingInfo[2].mBlendingWeight;
+			temp.blendingWeight.w = currCtrlPoint->mBlendingInfo[3].mBlendingWeight;
+
+			temp.blendingIndex.x = static_cast<float>(currCtrlPoint->mBlendingInfo[0].mBlendingIndex);
+			temp.blendingIndex.y = static_cast<float>(currCtrlPoint->mBlendingInfo[1].mBlendingIndex);
+			temp.blendingIndex.z = static_cast<float>(currCtrlPoint->mBlendingInfo[2].mBlendingIndex);
+			temp.blendingIndex.w = static_cast<float>(currCtrlPoint->mBlendingInfo[3].mBlendingIndex);
 
 
 			for (unsigned int i = 0; i < currCtrlPoint->mBlendingInfo.size(); ++i)
@@ -465,11 +478,11 @@ void FBXExporter::Optimize()
 	}
 
 	// Now we update the index buffer
-	for (unsigned int i = 0; i < m_Indices.size(); i+=3)
+	for (unsigned int i = 0; i < m_Indices.size(); i += 3)
 	{
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			m_Indices[j+i] = FindVertex(m_Vertices[i + j], uniqueVertices);
+			m_Indices[j + i] = FindVertex(m_Vertices[i + j], uniqueVertices);
 		}
 		std::swap(m_Indices[i], m_Indices[i + 1]);
 	}
@@ -480,22 +493,17 @@ void FBXExporter::Optimize()
 
 	m_Vertices.clear();
 	m_Vertices = uniqueVertices;
-	for (unsigned int i = 0; i < m_Indices.size(); ++i)
-	{
-		m_Vertices[m_Indices[i]].blendingIndex.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.x = static_cast<float>(m_BlendingInfos[(i * 4)].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.y = static_cast<float>(m_BlendingInfos[(i * 4) + 1].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.z = static_cast<float>(m_BlendingInfos[(i * 4) + 2].mBlendingWeight);
-
-		m_Vertices[m_Indices[i]].blendingIndex.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingIndex);
-		m_Vertices[m_Indices[i]].blendingWeight.w = static_cast<float>(m_BlendingInfos[(i * 4) + 3].mBlendingWeight);
-	}
 	uniqueVertices.clear();
 
+	m_Skeleton.m_joints[0].m_firstFrame = m_Skeleton.m_joints[0].m_keyframe;
+	m_Skeleton.m_joints[1].m_firstFrame = m_Skeleton.m_joints[1].m_keyframe;
+	m_Skeleton.m_joints[2].m_firstFrame = m_Skeleton.m_joints[2].m_keyframe;
+	m_Skeleton.m_joints[3].m_firstFrame = m_Skeleton.m_joints[3].m_keyframe;
+	ConvertToUML();
+	m_Skeleton.m_joints[0].m_keyframe = m_Skeleton.m_joints[0].m_firstFrame;
+	m_Skeleton.m_joints[1].m_keyframe = m_Skeleton.m_joints[1].m_firstFrame;
+	m_Skeleton.m_joints[2].m_keyframe = m_Skeleton.m_joints[2].m_firstFrame;
+	m_Skeleton.m_joints[3].m_keyframe = m_Skeleton.m_joints[3].m_firstFrame;
 }
 
 void FBXExporter::ConvertToLHS()
@@ -592,4 +600,35 @@ void FBXExporter::CleanupFbxManager()
 	m_Indices.clear();
 	m_Vertices.clear();
 	m_Skeleton.m_joints.clear();
+}
+
+void FBXExporter::ConvertToUML()
+{
+
+	//fill in animation
+	m_animation.m_frames.resize(m_animation.m_numKeyFrames);
+	for (int i = 0; i < m_animation.m_numKeyFrames; ++i)
+	{
+		m_animation.m_frames[i].m_numBones = static_cast<int>(m_Skeleton.m_joints.size());
+		m_animation.m_frames[i].m_bones.resize(m_animation.m_frames[i].m_numBones);
+		m_animation.m_frames[i].m_time = m_Skeleton.m_joints[0].m_keyframe->m_time;
+		for ( int j = 0; j < m_animation.m_frames[i].m_numBones; ++j)
+		{
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix = m_Skeleton.m_joints[j].m_keyframe->m_worldMatrix;
+			m_Skeleton.m_joints[j].m_keyframe = m_Skeleton.m_joints[j].m_keyframe->m_nextFrame;
+		}
+
+	}
+	//fill in bind pose
+	for (unsigned int i = 0; i < m_Skeleton.m_joints.size(); ++i)
+	{
+		m_convertToBindPose.push_back(m_Skeleton.m_joints[i].m_globalBindposeInverse);
+	}
+	m_bindPose.init(static_cast<int>(m_Skeleton.m_joints.size()), m_convertToBindPose);
+
+
+	
+
+
+
 }

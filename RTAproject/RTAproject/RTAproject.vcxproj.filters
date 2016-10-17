@@ -70,6 +70,9 @@
     <ClCompile Include="FBXExporter.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="BindPose.cpp" />
+    <ClCompile Include="Interpolator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -80,6 +83,9 @@
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="BindPose.h" />
+    <ClInclude Include="Interpolator.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -89,6 +95,9 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="mountains.dds" />
+    <Image Include="energy_seamless.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -99,6 +108,9 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Cube.obj" />
+    <None Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexAnimationShader.hlsl">

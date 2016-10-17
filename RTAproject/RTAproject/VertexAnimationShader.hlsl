@@ -15,7 +15,7 @@ cbuffer BoneOffsets : register(b1)
 struct VertexShaderInput
 {
 	float3 pos : POSITION;
-	float2 uv : TEXCORD;
+	float2 tex : UV;
 	float3 normal : NORMAL;
 	float4 blendingIndicies : BINDICIES;
 	float4 blendingWeights : BWEIGHTS;
@@ -25,7 +25,11 @@ struct VertexShaderInput
 struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
-	float3 color : COLOR0;
+	float2 tex : UV;
+	float4 norm : NORMALS;
+	float3 sLightPos : TEXCOORD1;
+	float4 worldPosition : TEXCOORD2;
+	float1 ImageRef : TEXCOORD3;
 };
 
 // Simple shader to do vertex processing on the GPU.
@@ -35,17 +39,26 @@ PixelShaderInput main(VertexShaderInput input)
 	float4 pos = float4(input.pos, 1.0f);
 	//float4 norm = float4(input.normal, 0.0f);
 
+	output.worldPosition = pos;
+
+	float4 worldPosition;
+	worldPosition = mul(pos, model);
+	output.sLightPos.x = worldPosition.x;
+	output.sLightPos.y = worldPosition.y;
+	output.sLightPos.z = worldPosition.z;
+
 
 	output.pos = mul(pos, offsets[input.blendingIndicies.x] * input.blendingWeights.x);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.y] * input.blendingWeights.y);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.z] * input.blendingWeights.z);
 	output.pos += mul(output.pos, offsets[input.blendingIndicies.w] * input.blendingWeights.w);
 
-	//output.norm = mul(norm, offsets[input.blendingIndicies.x] * input.blendingWeights.x);
-	//output.norm += mul(output.norm, offsets[input.blendingIndicies.y] * input.blendingWeights.y);
-	//output.norm += mul(output.norm, offsets[input.blendingIndicies.z] * input.blendingWeights.z);
-	//output.norm += mul(output.norm, offsets[input.blendingIndicies.w] * input.blendingWeights.w);
-	//norm = mul(norm, model);
+	output.norm = mul(input.normal, offsets[input.blendingIndicies.x] * input.blendingWeights.x);
+	output.norm += mul(output.norm, offsets[input.blendingIndicies.y] * input.blendingWeights.y);
+	output.norm += mul(output.norm, offsets[input.blendingIndicies.z] * input.blendingWeights.z);
+	output.norm += mul(output.norm, offsets[input.blendingIndicies.w] * input.blendingWeights.w);
+	output.norm = mul(output.norm, model);
+	output.norm = normalize(output.norm);
 
 
 	// Transform the vertex position into projected space.
@@ -53,7 +66,10 @@ PixelShaderInput main(VertexShaderInput input)
 	output.pos = mul(output.pos, view);
 	output.pos = mul(output.pos, projection);
 
-	output.color = output.pos.xyz;
+	//output.color = output.pos.xyz;
+	output.tex = input.tex;
+
+	output.ImageRef = 1;
 
 	return output;
 }
