@@ -8,7 +8,6 @@ struct fhead
 	size_t vertexsize;
 	size_t trianglecountsize;
 	size_t jointsize;
-	size_t blendsize;
 };
 struct binaryblend
 {
@@ -23,6 +22,13 @@ struct binaryjoint
 	Keyframe* m_keyframe;
 	FbxNode* m_node;
 };
+struct binaryanimation
+{
+	int m_animtype;
+	int m_numkframes;
+	float m_TotalTime;
+	std::vector<Keyframe> m_Bones;
+};
 struct Binaryvertex
 {
 	DirectX::XMFLOAT3 pos;
@@ -36,20 +42,22 @@ class Filemanager
 public:
 	Filemanager();
 	~Filemanager();
-	bool Readfile(std::string _filename, std::vector<Joint> *_skeleton, std::vector<RobustVertex> *m_Vertices, std::vector<unsigned short> *m_Indices, unsigned int *m_TriangleCount, std::vector<BlendingIndexWeightPair> *blendinginfo);
+	bool Readfile(std::string _filename, std::vector<Joint> *_skeleton, std::vector<RobustVertex> *m_Vertices, std::vector<unsigned short> *m_Indices, unsigned int *m_TriangleCount);
 	bool Writefile(std::string _filename);
 	//Skeleton *m_skeleton;
 	bool NametoBinary(std::string _filename);
 	void Convert2Bin();
-	bool ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVertex> m_Vertices, std::vector<unsigned short> m_Indices, unsigned int m_TriangleCount, std::vector<BlendingIndexWeightPair> blendinginfo);
+	void ProcessAnimation(Animation* _anim);
+	bool ReadAnimation(std::string _filename, Animation *_anim);
+	bool ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVertex> m_Vertices, std::vector<unsigned short> m_Indices, unsigned int m_TriangleCount);
 private:
 	std::string m_Filename;
 	fhead filehead;
 	std::vector<unsigned char> binbuff;
-	std::vector<binaryblend> blenddata;
 	std::vector<binaryjoint> jointdata;
 	std::vector<Binaryvertex> vertdata;
 	std::vector<unsigned short> indexdata;
+	binaryanimation animdata;
 	unsigned int tricount;
 	unsigned int vertsize;
 	unsigned int jointsize;
@@ -68,7 +76,7 @@ Filemanager::~Filemanager()
 
 }
 
-bool Filemanager::Readfile(std::string _filename, std::vector<Joint> *_skeleton, std::vector<RobustVertex> *m_Vertices, std::vector<unsigned short> *m_Indices, unsigned int *m_TriangleCount, std::vector<BlendingIndexWeightPair> *blendinginfo)
+bool Filemanager::Readfile(std::string _filename, std::vector<Joint> *_skeleton, std::vector<RobustVertex> *m_Vertices, std::vector<unsigned short> *m_Indices, unsigned int *m_TriangleCount)
 {
 	std::string path = "..//Bin//";
 	path += _filename;
@@ -76,17 +84,15 @@ bool Filemanager::Readfile(std::string _filename, std::vector<Joint> *_skeleton,
 	fopen_s(&file, path.c_str(), "rb");
 	if (!file) return false;
 	fread(&filehead, sizeof(fhead), 1, file);
-	binbuff.resize((sizeof(Binaryvertex)* filehead.vertexsize) + (sizeof(binaryjoint)* filehead.jointsize) + (sizeof(binaryblend)* filehead.blendsize) + (sizeof(unsigned short)* filehead.indexsize) + sizeof(unsigned int));
+	binbuff.resize((sizeof(Binaryvertex)* filehead.vertexsize) + (sizeof(binaryjoint)* filehead.jointsize) + (sizeof(unsigned short)* filehead.indexsize) + sizeof(unsigned int));
 	_skeleton->resize(filehead.jointsize);
 	m_Vertices->resize(filehead.vertexsize);
 	m_Indices->resize(filehead.indexsize);
-	blendinginfo->resize(filehead.blendsize);
 
 	memcpy(m_Vertices->data(),binbuff.data(),sizeof(Binaryvertex) * filehead.vertexsize);
 	memcpy(_skeleton->data(), binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize), sizeof(binaryjoint)*  filehead.jointsize);
-	memcpy(blendinginfo->data(), binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize)+ (sizeof(binaryjoint)*  filehead.jointsize), sizeof(binaryblend)* filehead.blendsize);
-	memcpy(m_Indices->data(), binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize) + (sizeof(binaryjoint)*  filehead.jointsize) + (sizeof(binaryblend)* filehead.blendsize), sizeof(unsigned short)* filehead.indexsize);
-	memcpy(m_TriangleCount, binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize) + (sizeof(binaryjoint)*  filehead.jointsize) + (sizeof(binaryblend)* filehead.blendsize) + (sizeof(unsigned short)* indexsize), sizeof(unsigned int) *filehead.trianglecountsize);
+	memcpy(m_Indices->data(), binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize) + (sizeof(binaryjoint)*  filehead.jointsize), sizeof(unsigned short)* filehead.indexsize);
+	memcpy(m_TriangleCount, binbuff.data() + (sizeof(Binaryvertex) * filehead.vertexsize) + (sizeof(binaryjoint)*  filehead.jointsize) + (sizeof(unsigned short)* indexsize), sizeof(unsigned int) *filehead.trianglecountsize);
 	fclose(file);
 	return true;
 }
@@ -104,10 +110,11 @@ bool Filemanager::Writefile(std::string _filename)
 
 bool Filemanager::NametoBinary(std::string _filename)
 {
-	m_Filename = _filename;
+	m_Filename.clear();
+	m_Filename += _filename;
 	m_Filename += ".bin";
 }
-bool Filemanager::ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVertex> m_Vertices, std::vector<unsigned short> m_Indices, unsigned int m_TriangleCount, std::vector<BlendingIndexWeightPair> blendinginfo)
+bool Filemanager::ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVertex> m_Vertices, std::vector<unsigned short> m_Indices, unsigned int m_TriangleCount)
 {
 	tricount = m_TriangleCount;
 	for (size_t i = 0; i < _skeleton.size(); i++)
@@ -130,32 +137,46 @@ bool Filemanager::ExtractData(std::vector<Joint> _skeleton, std::vector<RobustVe
 	{
 		indexdata[i] = m_Indices[i];
 	}
-	for (size_t i = 0; i < blendinginfo.size(); i++)
-	{
-		blenddata[i].blendingIndex = blendinginfo[i].mBlendingIndex;
-		blenddata[i].blendingweight = blendinginfo[i].mBlendingWeight;
-	}
 }
 void Filemanager::Convert2Bin()
 {
 	filehead.vertexsize = vertdata.size();
 	filehead.jointsize = jointdata.size();
-	filehead.blendsize = blenddata.size();
 	filehead.indexsize = indexdata.size();
 	filehead.trianglecountsize = 1;
 
 	vertsize = (sizeof(Binaryvertex)* filehead.vertexsize);
 	jointsize = (sizeof(binaryjoint)* filehead.jointsize);
 	trisize = sizeof(unsigned int);
-	blendsize = (sizeof(binaryblend)* filehead.blendsize);
 	indexsize = (sizeof(unsigned short)* filehead.indexsize);
 
 	binbuff.resize(vertsize + jointsize + blendsize + indexsize + trisize);
 	memcpy(binbuff.data(), vertdata.data(), vertsize);
 	memcpy(binbuff.data() + vertsize, jointdata.data(), jointsize);
-	memcpy(binbuff.data() + vertsize + jointsize, blenddata.data(), blendsize);
-	memcpy(binbuff.data() + vertsize + jointsize + blendsize, indexdata.data(), indexsize);
-	memcpy(binbuff.data() + vertsize + jointsize + blendsize + indexsize, (unsigned int*)tricount, trisize);
+	memcpy(binbuff.data() + vertsize + jointsize, indexdata.data(), indexsize);
+	memcpy(binbuff.data() + vertsize + jointsize + indexsize, (unsigned int*)tricount, trisize);
 
 
+}
+void Filemanager::ProcessAnimation( Animation* _anim)
+{
+	
+	animdata.m_animtype = _anim->AnimType;
+	animdata.m_numkframes = _anim->num_KeyFrames;
+	animdata.m_TotalTime = _anim->TotalTime;
+	for (size_t i = 0; i < _anim->num_KeyFrames; i++)
+	{
+		animdata.m_Bones[i] = _anim->Bones[i];
+	}
+}
+bool Filemanager::ReadAnimation(std::string _filename, Animation *_anim)
+{
+	std::string path = "..//Bin//";
+	path += _filename;
+	FILE *file;
+	fopen_s(&file, path.c_str(), "rb");
+	if (!file) return false;
+	fread(&filehead, sizeof(fhead), 1, file);
+	binbuff.resize(sizeof(binaryanimation));
+	memcpy(_anim, binbuff.data(), sizeof(binaryanimation));
 }
