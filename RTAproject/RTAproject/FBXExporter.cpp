@@ -247,7 +247,7 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 			{
 				ReadUV(currMesh, ctrlPointIndex, currMesh->GetTextureUVIndex(i, j), UV[j][k]);
 			}
-
+			
 
 			RobustVertex temp;
 			temp.position = currCtrlPoint->mPosition;
