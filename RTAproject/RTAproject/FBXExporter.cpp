@@ -5,6 +5,7 @@ using namespace DirectX;
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include "Interpolator.h"
 
 FBXExporter::FBXExporter()
 {
@@ -641,5 +642,10 @@ void FBXExporter::ConvertToUML()
 		m_convertToBindPose.push_back(m_Skeleton.m_joints[i].m_globalBindposeInverse);
 	}
 	m_bindPose.init(static_cast<int>(m_Skeleton.m_joints.size()), m_convertToBindPose);
+
+
+	
+
+
 
 }
