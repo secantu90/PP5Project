@@ -96,6 +96,9 @@
     <Image Include="energy_seamless.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="TestCubeDDS.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

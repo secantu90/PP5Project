@@ -235,6 +235,7 @@
     <Image Include="brownishDirt_seamless.dds" />
     <Image Include="energy_seamless.dds" />
     <Image Include="mountains.dds" />
+    <Image Include="TestCubeDDS.dds" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />

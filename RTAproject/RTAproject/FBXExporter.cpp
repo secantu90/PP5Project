@@ -250,8 +250,9 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 
 			RobustVertex temp;
 			temp.position = currCtrlPoint->mPosition;
-			temp.position.z = 1.0f / temp.position.z;
+			temp.position.z *= -1.0f;
 			temp.normal = normal[j];
+			temp.normal.z *= -1;
 			temp.uv = UV[j][0];
 			temp.uv.y = 1.0f - temp.uv.y;
 
@@ -483,12 +484,12 @@ void FBXExporter::Optimize()
 		{
 			m_Indices[j + i] = FindVertex(m_Vertices[i + j], uniqueVertices);
 		}
-		std::swap(m_Indices[i], m_Indices[i + 1]);
+		//std::swap(m_Indices[i], m_Indices[i + 1]);
 	}
 
 
 
-	ConvertToLHS();
+	
 
 	m_Vertices.clear();
 	m_Vertices = uniqueVertices;
@@ -503,22 +504,38 @@ void FBXExporter::Optimize()
 	m_Skeleton.m_joints[1].m_keyframe = m_Skeleton.m_joints[1].m_firstFrame;
 	m_Skeleton.m_joints[2].m_keyframe = m_Skeleton.m_joints[2].m_firstFrame;
 	m_Skeleton.m_joints[3].m_keyframe = m_Skeleton.m_joints[3].m_firstFrame;
+
+	ConvertToLHS();
 }
 
 void FBXExporter::ConvertToLHS()
 {
 	for (unsigned int i = 0; i < m_Skeleton.m_joints.size(); ++i)
 	{
-		FbxAMatrix matrix;
-		ConvertMatrixXtoF(m_Skeleton.m_joints[i].m_globalBindposeInverse, matrix);
-		FbxVector4 translation = matrix.GetT();
-		FbxVector4 rotation = matrix.GetR();
-		translation.Set(translation.mData[0], translation.mData[1], -translation.mData[2]);
-		rotation.Set(-rotation.mData[0], -rotation.mData[1], rotation.mData[2]);
-		matrix.SetT(translation);
-		matrix.SetR(rotation);
-		ConvertMatrixFtoX(matrix, m_Skeleton.m_joints[i].m_globalBindposeInverse);
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._13 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._13;
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._23 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._23;
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._43 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._43;
+
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._31 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._31;
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._32 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._32;
+		m_Skeleton.m_joints[i].m_globalBindposeInverse._34 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._34;
+		
 	}
+
+	for (size_t i = 0; i < m_animation.m_frames.size(); ++i)
+	{
+		for (size_t j = 0; j < m_animation.GetNumBones(); ++j)
+		{
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._13 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._13;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._23 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._23;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._43 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._43;
+
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._31 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._31;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._32 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._32;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._34 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._34;
+		}
+	}
+
 }
 
 void FBXExporter::ConvertMatrixFtoX(FbxAMatrix toConvert, DirectX::XMFLOAT4X4 &matrix)

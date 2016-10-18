@@ -943,7 +943,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		HRESULT hr;
 
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"energy_seamless.dds", nullptr, &m_shaderView[1]);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"TestCubeDDS.dds", nullptr, &m_shaderView[1]);
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = cubeVertices;
