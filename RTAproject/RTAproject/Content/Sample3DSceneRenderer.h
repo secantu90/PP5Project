@@ -8,7 +8,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include "Model.h"
-
+#include "FileManage.h"
 namespace RTAproject
 {
 	// This sample renderer instantiates a basic rendering pipeline.
@@ -74,6 +74,15 @@ namespace RTAproject
 		uint32  m_indexCountQuad;
 
 		FBXExporter m_FBXExporter;
+		Animation* m_Animation;
+		Animation m_temp;
+		BindPose* m_Bind;
+		BindPose m_tempbind;
+		Filemanage m_FileIO;
+		std::vector<RTAproject::RobustVertex> m_Vertices;
+		std::vector<unsigned short> m_indices;
+		std::vector<RTAproject::RobustVertex> m_tempVert;
+		std::vector<unsigned short> m_tempind;
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;

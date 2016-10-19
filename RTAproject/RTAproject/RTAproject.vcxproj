@@ -243,7 +243,7 @@
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="FBXExporter.h" />
-    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="FileManage.h" />
     <ClInclude Include="Interpolator.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="RTAprojectMain.h" />
@@ -262,6 +262,7 @@
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="FBXExporter.cpp" />
+    <ClCompile Include="FileManage.cpp" />
     <ClCompile Include="Interpolator.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="RTAprojectMain.cpp" />

@@ -3,10 +3,9 @@
 #include <vector>
 class BindPose 
 {
-private:
+public:
 	std::vector<DirectX::XMFLOAT4X4> m_InvBindPose; //size of m_numBones
 	int m_numBones;
-public:
 	BindPose();
 	const std::vector<DirectX::XMFLOAT4X4> GetBindPose();
 	int GetNumBones();

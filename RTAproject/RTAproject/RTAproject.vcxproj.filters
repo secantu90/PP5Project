@@ -73,6 +73,7 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="BindPose.cpp" />
     <ClCompile Include="Interpolator.cpp" />
+    <ClCompile Include="FileManage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -82,10 +83,10 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BindPose.h" />
     <ClInclude Include="Interpolator.h" />
+    <ClInclude Include="FileManage.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
