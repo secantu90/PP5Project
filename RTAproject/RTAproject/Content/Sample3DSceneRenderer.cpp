@@ -577,7 +577,7 @@ void Sample3DSceneRenderer::Render()
 	///////////////////////////////////////////////////
 	//Dallas
 	// Prepare the constant buffer to send it to the graphics device.
-	static int angle = 0;
+	static float angle = 0;
 	//++angle;
 	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
 
@@ -956,7 +956,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		HRESULT hr;
 
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"energy_seamless.dds", nullptr, &m_shaderView[1]);
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"TestCubeDDS.dds", nullptr, &m_shaderView[1]);
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = cubeVertices;
