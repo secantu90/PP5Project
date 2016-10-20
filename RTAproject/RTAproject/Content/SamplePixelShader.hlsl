@@ -26,13 +26,16 @@ cbuffer LightPositionBuffer : register(b1)
 	float4 SL_Position;
 }
 
-texture2D baseTexture[3] : register(t0);
+texture2D baseTexture[4] : register(t0);
 
 SamplerState filter : register(s0);
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
 {
+	//Specular Mapping
+	float4 specularSample;
+
 	//Normal Mapping
 	float4 normalMapColor;
 
@@ -50,6 +53,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		//Wizard
 		finalColor1 = baseTexture[1].Sample(filter, input.tex);
 		normalMapColor = baseTexture[2].Sample(filter, input.tex);
+
+		specularSample = baseTexture[3].Sample(filter, input.tex);
 
 		normalMapColor.xyz = (normalMapColor.xyz * 2.0f) - float3(1.0f, 1.0f, 1.0f);
 
@@ -125,10 +130,9 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	reflection = normalize(lightDir + direction);
 	specular = pow(saturate(dot(finalNorm, normalize(reflection))), 32);
 	float4 result2 = diffuseColor * .7f * specular;	
+	result2 *= specularSample;
 
 	color = (color + result + color2) * finalColor1;
-
-
 	color = saturate(color + result2);
 
 

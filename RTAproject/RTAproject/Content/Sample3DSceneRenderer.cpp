@@ -563,7 +563,7 @@ void Sample3DSceneRenderer::Render()
 		0
 	);
 
-	context->PSSetShaderResources(0, 3, m_shaderView);
+	context->PSSetShaderResources(0, 4, m_shaderView);
 
 
 	// Draw the objects.
@@ -962,6 +962,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardDiffuse.dds", nullptr, &m_shaderView[1]);//Wizard texture
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardNormal.dds", nullptr, &m_shaderView[2]);//Wizard normal map texture
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardSpecularMap.dds", nullptr, &m_shaderView[3]);//Wizard Specular map texture
+
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = cubeVertices;
@@ -1117,7 +1119,7 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_constantBufferLightsPosition.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
 		if (m_shaderView[i] != NULL)
 			m_shaderView[i]->Release();
