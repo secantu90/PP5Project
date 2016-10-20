@@ -62,8 +62,8 @@ bool Filemanage::WriteVertexData(std::string _filename, std::vector<RTAproject::
 	full += _filename;
 	fopen_s(&ofile, full.c_str(), "wb");
 	if (nullptr == ofile) return false;
-	verthead.indexsize = _indices.size();
-	verthead.vertsize = _Vertices.size();
+	verthead.indexsize = static_cast<int>(_indices.size());
+	verthead.vertsize = static_cast<int>(_Vertices.size());
 	fwrite(&verthead, sizeof(Vertfhead), 1, ofile);
 	fwrite(&_Vertices[0], sizeof(RTAproject::RobustVertex), _Vertices.size(), ofile);
 	fwrite(&_indices[0], sizeof(unsigned short), _indices.size(), ofile);

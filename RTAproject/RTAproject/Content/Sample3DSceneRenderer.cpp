@@ -579,7 +579,8 @@ void Sample3DSceneRenderer::Render()
 	// Prepare the constant buffer to send it to the graphics device.
 	static float angle = 0;
 	//++angle;
-	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
+	//XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixTranslation(0.0f, 0.0f, 5.0f));
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixTranspose( DirectX::XMMatrixScaling(0.1f,0.1f,0.1f)));
 
 	context->UpdateSubresource1(
 		m_constantBuffer.Get(),
