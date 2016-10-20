@@ -101,6 +101,15 @@
     <Image Include="TestCubeDDS.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="WizardNormal.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="WizardDiffuse.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="WizardSpecularMap.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -134,5 +143,10 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MeshContentTask Include="Mage with Bind and Textures.fbx">
+      <Filter>Assets</Filter>
+    </MeshContentTask>
   </ItemGroup>
 </Project>
