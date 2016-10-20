@@ -2,13 +2,14 @@
 #include "Utilities.h"
 #include "Animation.h"
 #include <vector>
-class Interpolator 
+class Interpolator
 {
 public:
 	const Animation		*m_animation;
 	double				m_currBlendTime;
+	double				frameTime;
 	double				m_totalBlendTime;
-	double				m_currFrame;
+	int					m_currFrame;
 	UMLKeyFrame			m_betweenKeyFrame;
 	std::vector<Boint>	m_boints;
 

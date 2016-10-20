@@ -2,23 +2,16 @@
 #include "Interpolator.h"
 
 
-Interpolator::Interpolator() {}
-
-
-UMLKeyFrame Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, double _deltaTime)
+Interpolator::Interpolator()
 {
-	//UMLKeyFrame temp = _currFrame;
-	//for (unsigned int bone = 0; bone < temp.m_bones.size(); ++bone)
-	//{
-	//	for (unsigned int i = 0; i < 4; ++i)
-	//	{
-	//		for (unsigned int j = 0; j < 4; ++j)
-	//		{
-	//			temp.m_bones[bone].m_boneMatrix.m[i][j] = _currFrame.m_bones[0].m_boneMatrix.m[i][j] + (_nextFrame.m_bones[0].m_boneMatrix.m[i][j] - _currFrame.m_bones[0].m_boneMatrix.m[i][j]) * _deltaTime;
-	//		}
-	//	}
-	//}
-	//return temp;
+	m_currBlendTime = 0;
+	m_totalBlendTime = 0;
+}
+
+
+UMLKeyFrame Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, float _deltaTime)
+{
+
 	UMLKeyFrame temp = _currFrame;
 
 
@@ -28,11 +21,10 @@ UMLKeyFrame Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, double _deltaTi
 		DirectX::XMVECTOR rotationCur, rotationNext;
 		DirectX::XMVECTOR positionCur, positionNext;
 		DirectX::XMMatrixDecompose(&scaleCur, &rotationCur, &positionCur, DirectX::XMLoadFloat4x4(&_currFrame.m_bones[bone].m_boneMatrix));
-		DirectX::XMMatrixDecompose(&scaleNext, &rotationNext, &positionNext, DirectX::XMLoadFloat4x4(&_currFrame.m_bones[bone].m_boneMatrix));
-		DirectX::XMVECTOR rotNow, scaleNow, posNow;
-		rotNow = DirectX::XMQuaternionSlerp(rotationCur, rotationNext, _deltaTime);
-		scaleNow = DirectX::XMVectorLerp(scaleCur, scaleNext, _deltaTime);
-		posNow = DirectX::XMVectorLerp(positionCur, positionNext, _deltaTime);
+		DirectX::XMMatrixDecompose(&scaleNext, &rotationNext, &positionNext, DirectX::XMLoadFloat4x4(&_nextFrame.m_bones[bone].m_boneMatrix));
+		DirectX::XMVECTOR rotNow = DirectX::XMQuaternionSlerp(rotationCur, rotationNext, _deltaTime);
+		DirectX::XMVECTOR scaleNow = DirectX::XMVectorLerp(scaleCur, scaleNext, _deltaTime);
+		DirectX::XMVECTOR posNow = DirectX::XMVectorLerp(positionCur, positionNext, _deltaTime);
 
 		DirectX::XMMATRIX matrixNow = DirectX::XMMatrixAffineTransformation(scaleNow, DirectX::XMVectorZero(), rotNow, posNow);
 
@@ -60,27 +52,40 @@ void Interpolator::SetTime(double _time)
 }
 ANIM_TYPE Interpolator::Update(double _time)
 {
+
 	m_currBlendTime += _time;
-	while (m_currBlendTime > m_animation->m_frames[m_currFrame].m_time)
-	{
-		++m_currFrame;
-		m_currBlendTime -= m_animation->m_frames[m_currFrame].m_time;
-	}
+	UMLKeyFrame currKeyFrame = m_animation->m_frames[m_currFrame];
+	m_totalBlendTime += currKeyFrame.m_time;
 
 	UMLKeyFrame nextKeyFrame;
-	UMLKeyFrame prevKeyFrame;
-	if ((m_currFrame + 1) != m_animation->m_frames.size())
+	if ((m_currFrame) >= m_animation->m_frames.size() - 1)
+	{
+		m_currFrame = 0;
+		currKeyFrame = m_animation->m_frames[0];
+		nextKeyFrame = m_animation->m_frames[1];
+	}
+	else
 		nextKeyFrame = m_animation->m_frames[m_currFrame + 1];
-	else
-		nextKeyFrame = m_animation->m_frames[m_currFrame];
-	if ((m_currFrame - 1) != 0)
-		prevKeyFrame = m_animation->m_frames[m_currFrame - 1];
-	else
-		prevKeyFrame = m_animation->m_frames[m_currFrame];
 
-	double tweenTime = prevKeyFrame.m_time - nextKeyFrame.m_time;
-	double deltaTime = m_currBlendTime / tweenTime;
-	m_betweenKeyFrame = Lerp(m_animation->m_frames[m_currFrame], nextKeyFrame, deltaTime);
+	frameTime = m_currBlendTime - currKeyFrame.m_time;
+
+	double tweenTime = nextKeyFrame.m_time - currKeyFrame.m_time;
+	while (frameTime > tweenTime)
+	{
+		++m_currFrame;
+		if (m_currFrame >= m_animation->m_frames.size() - 1)
+		{
+			m_currFrame = 0;
+		}
+		currKeyFrame = m_animation->m_frames[m_currFrame];
+		nextKeyFrame = m_animation->m_frames[m_currFrame + 1];
+		frameTime -= tweenTime;
+	}
+
+	double deltaTime = frameTime / tweenTime;
+	if (m_currFrame == m_animation->m_frames.size())
+		m_currFrame = 0;
+	m_betweenKeyFrame = Lerp(currKeyFrame, nextKeyFrame, static_cast<float>(deltaTime));
 
 	return m_animation->m_animType;
 }

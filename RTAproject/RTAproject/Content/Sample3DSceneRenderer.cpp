@@ -192,7 +192,20 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 		keys['1'] = false;
 	}
-
+	if (keys[VK_F1])
+	{
+		/*m_Bind = &m_FBXExporter.m_bindPose;
+		m_FileIO.WriteBindData("bindtest", m_Bind);
+		m_FileIO.ReadBindData("bindtest",m_tempbind);*/
+		/*m_Animation = &m_FBXExporter.m_animation;
+		m_FileIO.ProcessAnimation(m_Animation);
+		m_FileIO.WriteAnimfile("Aaaaaaaaaaa", m_Animation);
+		m_FileIO.ReadAnimation("Aaaaaaaaaaa", m_temp);*/
+		m_indices = m_FBXExporter.m_Indices;
+		m_Vertices = m_FBXExporter.m_Vertices;
+		m_FileIO.WriteVertexData("verttest", m_Vertices, m_indices);
+		m_FileIO.ReadVertexData("verttest", m_tempVert, m_tempind);
+	}
 
 	if (mouseMoved)
 	{
@@ -566,7 +579,8 @@ void Sample3DSceneRenderer::Render()
 	// Prepare the constant buffer to send it to the graphics device.
 	static float angle = 0;
 	//++angle;
-	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(angle)) * DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
+	//XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixTranslation(0.0f, 0.0f, 5.0f));
+	XMStoreFloat4x4(&m_constantBufferData.model, DirectX::XMMatrixTranspose( DirectX::XMMatrixScaling(0.1f,0.1f,0.1f)));
 
 	context->UpdateSubresource1(
 		m_constantBuffer.Get(),
@@ -655,7 +669,7 @@ void Sample3DSceneRenderer::Render()
 		);
 	//End Dallas
 	///////////////////////////////////////////////////
-	
+
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources()
@@ -1087,10 +1101,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	(loadBoxTask && createSkyBoxTask).then([this] () {
 		m_loadingComplete = true;
 	});
+
+
 }
 
 void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 {
+	
 	m_loadingComplete = false;
 	m_vertexShader.Reset();
 	m_inputLayout.Reset();
@@ -1108,3 +1125,4 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	if (m_sampleState != NULL)
 		m_sampleState->Release();
 }
+

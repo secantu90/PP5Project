@@ -104,8 +104,8 @@
     <PackageCertificateKeyFile>RTAproject_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Program Files\Autodesk\FBX\FBX SDK\U2017.0.1\lib\vs2015store\x64\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Program Files\Autodesk\FBX\FBX SDK\U2017.0.1\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>$(LibraryPath)</LibraryPath>
@@ -206,7 +206,11 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
@@ -247,7 +251,7 @@
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="FBXExporter.h" />
-    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="FileManage.h" />
     <ClInclude Include="Interpolator.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="RTAprojectMain.h" />
@@ -266,6 +270,7 @@
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="FBXExporter.cpp" />
+    <ClCompile Include="FileManage.cpp" />
     <ClCompile Include="Interpolator.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="RTAprojectMain.cpp" />
