@@ -20,6 +20,8 @@ struct PixelShaderInput
 	float4 pos : SV_POSITION;
 	float2 tex : UV;
 	float4 norm : NORMALS;
+	float4 tangent : TANGENT;
+	float4 bitangent : BITANGENT;
 	float3 sLightPos : TEXCOORD1;
 	float4 worldPosition : TEXCOORD2;
 	float1 ImageRef : TEXCOORD3;
@@ -58,6 +60,9 @@ PixelShaderInput main(VertexShaderInput input)
 	output.tex = input.tex;
 
 	output.ImageRef = 0;
+
+	output.tangent = norm;
+	output.bitangent = norm;
 
 	return output;
 }

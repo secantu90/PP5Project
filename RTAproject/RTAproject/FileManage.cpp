@@ -27,7 +27,7 @@ bool Filemanage::WriteBindData(std::string _filename, BindPose* _bind, const cha
 	ExporterHeader header(FILE_TYPES::BIND_POSE,_FBXLocation);
 	header.bind.numBones = _bind->m_numBones;
 	fwrite(&header, sizeof(ExporterHeader), 1, ofile);
-	for(int i = 0; i < 4; ++i)
+	for(int i = 0; i < header.bind.numBones; ++i)
 		fwrite(&_bind->m_InvBindPose[i], sizeof(DirectX::XMFLOAT4X4), 1, ofile);
 	fclose(ofile);
 	return true;
@@ -46,7 +46,7 @@ bool Filemanage::ReadBindData(std::string _filename, BindPose& _bind)
 	if (nullptr == file) return false;
 	fread(&header, sizeof(ExporterHeader), 1, file);
 	_bind.m_InvBindPose.resize(header.bind.numBones);
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < header.bind.numBones; ++i)
 		fread(&_bind.m_InvBindPose[i], sizeof(DirectX::XMFLOAT4X4), 1, file);
 	_bind.m_numBones = header.bind.numBones;
 	fclose(file);
@@ -88,7 +88,7 @@ bool Filemanage::ReadVertexData(std::string _filename, std::vector<RTAproject::R
 	_Vertices.resize(header.mesh.vertSize);
 	_indices.resize(header.mesh.numIndex);
 	fread(&_Vertices[0], sizeof(RTAproject::RobustVertex), _Vertices.size(), file);
-	fread(&_indices[0], sizeof(unsigned int), _indices.size(), file);
+	fread(&_indices[0], sizeof(unsigned short), _indices.size(), file);
 	fclose(file);
 	return true;
 }

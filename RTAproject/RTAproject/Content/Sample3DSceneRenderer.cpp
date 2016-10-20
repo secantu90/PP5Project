@@ -593,16 +593,12 @@ void Sample3DSceneRenderer::Render()
 		);
 	for (size_t i = 0; i < m_FBXExporter.m_animation.GetFrame(0).size(); ++i)
 	{
-		XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[i], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[i].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[i].m_boneMatrix))));
+		XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[i], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[i]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[i].m_boneMatrix))));
 		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
 		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
 		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
 	}
 
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[0]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[1]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[2]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[3]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
 	
 	context->UpdateSubresource1(
 		m_boneOffsetsBuffer.Get(),
@@ -1014,12 +1010,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		std::wstring ws(folder->Path->Data());
 		std::string full(ws.begin(), ws.end());
 		full += "\\";
-		full += "Box_Bind";
-		if (m_exporthead.check(&file, full.c_str(),"Box_Idle.fbx"))
+		full += "Mage_Bind";
+		if (m_exporthead.check(&file, full.c_str(),"Mage with Bind and Textures.fbx"))
 		{
-			m_FileIO.ReadBindData("Box_Bind", m_FBXExporter.m_bindPose);
-			m_FileIO.ReadVertexData("Box_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
-			m_FileIO.ReadAnimation("Box_Anim", m_FBXExporter.m_animation);
+			m_FileIO.ReadBindData("Mage_Bind", m_FBXExporter.m_bindPose);
+			m_FileIO.ReadVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
+			m_FileIO.ReadAnimation("Mage_Anim", m_FBXExporter.m_animation);
 			
 		}
 		else
@@ -1035,9 +1031,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			}
 			m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
 			m_FBXExporter.Optimize();
-			m_FileIO.WriteAnimfile("Box_Anim", &m_FBXExporter.m_animation, "Box_Idle.fbx");
-			m_FileIO.WriteBindData("Box_Bind", &m_FBXExporter.m_bindPose, "Box_Idle.fbx");
-			m_FileIO.WriteVertexData("Box_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Box_Idle.fbx");
+			m_FileIO.WriteAnimfile("Mage_Anim", &m_FBXExporter.m_animation, "Mage with Bind and Textures.fbx");
+			m_FileIO.WriteBindData("Mage_Bind", &m_FBXExporter.m_bindPose, "Mage with Bind and Textures.fbx");
+			m_FileIO.WriteVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Mage with Bind and Textures.fbx");
 		}
 		
 

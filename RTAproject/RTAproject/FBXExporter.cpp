@@ -7,7 +7,6 @@ using namespace DirectX;
 #include <iomanip>
 #include "Interpolator.h"
 
-#define EXPORTER_VERSION_NUMBER 1
 FBXExporter::FBXExporter()
 {
 	m_FBXManager = nullptr;
@@ -233,7 +232,7 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 	for (unsigned int i = 0; i < m_TriangleCount; ++i)
 	{
 		XMFLOAT3 normal[3];
-		XMFLOAT3 tangent[3];
+		XMFLOAT3 binormal[3];
 		XMFLOAT2 UV[3][2];
 
 		for (unsigned int j = 0; j < 3; ++j)
@@ -243,22 +242,18 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 
 
 			ReadNormal(currMesh, ctrlPointIndex, vertexCounter, normal[j]);
-
-			ReadTangent(currMesh, ctrlPointIndex, vertexCounter, tangent[j]);
-
 			// We only have diffuse texture
 			for (int k = 0; k < 1; ++k)
 			{
 				ReadUV(currMesh, ctrlPointIndex, currMesh->GetTextureUVIndex(i, j), UV[j][k]);
 			}
-			
+
 
 			RobustVertex temp;
 			temp.position = currCtrlPoint->mPosition;
 			temp.position.z *= -1.0f;
 			temp.normal = normal[j];
-			temp.normal.z *= -1;
-			temp.tangent = tangent[j];
+			temp.normal.z *= -1.0f;
 			temp.uv = UV[j][0];
 			temp.uv.y = 1.0f - temp.uv.y;
 
@@ -404,68 +399,6 @@ void FBXExporter::ReadNormal(FbxMesh* inMesh, int inCtrlPointIndex, int inVertex
 	}
 }
 
-void FBXExporter::ReadTangent(FbxMesh* inMesh, int inCtrlPointIndex, int inVertexCounter, XMFLOAT3& outTangent)
-{
-	if (inMesh->GetElementTangentCount() < 1)
-	{
-		throw std::exception("Invalid Tangent Number");
-	}
-
-	FbxGeometryElementTangent* vertexTangent = inMesh->GetElementTangent(0);
-	switch (vertexTangent->GetMappingMode())
-	{
-	case FbxGeometryElement::eByControlPoint:
-		switch (vertexTangent->GetReferenceMode())
-		{
-		case FbxGeometryElement::eDirect:
-		{
-			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[0]);
-			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[1]);
-			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[2]);
-		}
-		break;
-
-		case FbxGeometryElement::eIndexToDirect:
-		{
-			int index = vertexTangent->GetIndexArray().GetAt(inCtrlPointIndex);
-			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[0]);
-			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[1]);
-			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-
-		default:
-			throw std::exception("Invalid Reference");
-		}
-		break;
-
-	case FbxGeometryElement::eByPolygonVertex:
-		switch (vertexTangent->GetReferenceMode())
-		{
-		case FbxGeometryElement::eDirect:
-		{
-			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[0]);
-			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[1]);
-			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[2]);
-		}
-		break;
-
-		case FbxGeometryElement::eIndexToDirect:
-		{
-			int index = vertexTangent->GetIndexArray().GetAt(inVertexCounter);
-			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[0]);
-			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[1]);
-			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-
-		default:
-			throw std::exception("Invalid Reference");
-		}
-		break;
-	}
-}
-
 void FBXExporter::ReadBinormal(FbxMesh* inMesh, int inCtrlPointIndex, int inVertexCounter, XMFLOAT3& outBinormal)
 {
 	if (inMesh->GetElementBinormalCount() < 1)
@@ -557,7 +490,6 @@ void FBXExporter::Optimize()
 
 
 
-	
 
 	m_Vertices.clear();
 	m_Vertices = uniqueVertices;
@@ -572,37 +504,36 @@ void FBXExporter::Optimize()
 	m_Skeleton.m_joints[1].m_keyframe = m_Skeleton.m_joints[1].m_firstFrame;
 	m_Skeleton.m_joints[2].m_keyframe = m_Skeleton.m_joints[2].m_firstFrame;
 	m_Skeleton.m_joints[3].m_keyframe = m_Skeleton.m_joints[3].m_firstFrame;
-
 	ConvertToLHS();
 }
 
 void FBXExporter::ConvertToLHS()
 {
-	for (unsigned int i = 0; i < m_Skeleton.m_joints.size(); ++i)
+	for (unsigned int i = 0; i < m_bindPose.GetBindPose().size(); ++i)
 	{
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._13 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._13;
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._23 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._23;
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._43 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._43;
+		m_bindPose.m_InvBindPose[i]._13 = -m_bindPose.GetBindPose()[i]._13;
+		m_bindPose.m_InvBindPose[i]._23 = -m_bindPose.GetBindPose()[i]._23;
+		m_bindPose.m_InvBindPose[i]._43 = -m_bindPose.GetBindPose()[i]._43;
 
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._31 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._31;
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._32 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._32;
-		m_Skeleton.m_joints[i].m_globalBindposeInverse._34 = -m_Skeleton.m_joints[i].m_globalBindposeInverse._34;
-		
+		m_bindPose.m_InvBindPose[i]._31 = -m_bindPose.GetBindPose()[i]._31;
+		m_bindPose.m_InvBindPose[i]._32 = -m_bindPose.GetBindPose()[i]._32;
+		m_bindPose.m_InvBindPose[i]._34 = -m_bindPose.GetBindPose()[i]._34;
 	}
 
-	for (size_t i = 0; i < m_animation.m_frames.size(); ++i)
+	for (int i = 0; i < m_animation.m_numKeyFrames; ++i)
 	{
-		for (size_t j = 0; j < m_animation.GetNumBones(); ++j)
+		for (unsigned int j = 0; j < m_animation.GetFrame(i).size(); j++)
 		{
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._13 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._13;
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._23 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._23;
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._43 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._43;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._13 = -m_animation.GetFrame(i)[j].m_boneMatrix._13;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._23 = -m_animation.GetFrame(i)[j].m_boneMatrix._23;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._43 = -m_animation.GetFrame(i)[j].m_boneMatrix._43;
 
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._31 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._31;
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._32 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._32;
-			m_animation.m_frames[i].m_bones[j].m_boneMatrix._34 = -m_animation.m_frames[i].m_bones[j].m_boneMatrix._34;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._31 = -m_animation.GetFrame(i)[j].m_boneMatrix._31;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._32 = -m_animation.GetFrame(i)[j].m_boneMatrix._32;
+			m_animation.m_frames[i].m_bones[j].m_boneMatrix._34 = -m_animation.GetFrame(i)[j].m_boneMatrix._34;
 		}
 	}
+
 
 }
 
@@ -696,7 +627,7 @@ void FBXExporter::ConvertToUML()
 		m_animation.m_frames[i].m_numBones = static_cast<int>(m_Skeleton.m_joints.size());
 		m_animation.m_frames[i].m_bones.resize(m_animation.m_frames[i].m_numBones);
 		m_animation.m_frames[i].m_time = m_Skeleton.m_joints[0].m_keyframe->m_time;
-		for ( int j = 0; j < m_animation.m_frames[i].m_numBones; ++j)
+		for (int j = 0; j < m_animation.m_frames[i].m_numBones; ++j)
 		{
 			m_animation.m_frames[i].m_bones[j].m_boneMatrix = m_Skeleton.m_joints[j].m_keyframe->m_worldMatrix;
 			m_Skeleton.m_joints[j].m_keyframe = m_Skeleton.m_joints[j].m_keyframe->m_nextFrame;
@@ -711,9 +642,8 @@ void FBXExporter::ConvertToUML()
 	m_bindPose.init(static_cast<int>(m_Skeleton.m_joints.size()), m_convertToBindPose);
 
 
-	
+
 
 
 
 }
-
