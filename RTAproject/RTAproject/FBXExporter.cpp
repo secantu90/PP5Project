@@ -233,7 +233,7 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 	for (unsigned int i = 0; i < m_TriangleCount; ++i)
 	{
 		XMFLOAT3 normal[3];
-		XMFLOAT3 binormal[3];
+		XMFLOAT3 tangent[3];
 		XMFLOAT2 UV[3][2];
 
 		for (unsigned int j = 0; j < 3; ++j)
@@ -243,6 +243,9 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 
 
 			ReadNormal(currMesh, ctrlPointIndex, vertexCounter, normal[j]);
+
+			ReadTangent(currMesh, ctrlPointIndex, vertexCounter, tangent[j]);
+
 			// We only have diffuse texture
 			for (int k = 0; k < 1; ++k)
 			{
@@ -255,6 +258,7 @@ void FBXExporter::ProcessMesh(FbxNode* inNode)
 			temp.position.z *= -1.0f;
 			temp.normal = normal[j];
 			temp.normal.z *= -1;
+			temp.tangent = tangent[j];
 			temp.uv = UV[j][0];
 			temp.uv.y = 1.0f - temp.uv.y;
 
@@ -390,6 +394,68 @@ void FBXExporter::ReadNormal(FbxMesh* inMesh, int inCtrlPointIndex, int inVertex
 			outNormal.x = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[0]);
 			outNormal.y = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[1]);
 			outNormal.z = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[2]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
+	}
+}
+
+void FBXExporter::ReadTangent(FbxMesh* inMesh, int inCtrlPointIndex, int inVertexCounter, XMFLOAT3& outTangent)
+{
+	if (inMesh->GetElementTangentCount() < 1)
+	{
+		throw std::exception("Invalid Tangent Number");
+	}
+
+	FbxGeometryElementTangent* vertexTangent = inMesh->GetElementTangent(0);
+	switch (vertexTangent->GetMappingMode())
+	{
+	case FbxGeometryElement::eByControlPoint:
+		switch (vertexTangent->GetReferenceMode())
+		{
+		case FbxGeometryElement::eDirect:
+		{
+			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[0]);
+			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[1]);
+			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inCtrlPointIndex).mData[2]);
+		}
+		break;
+
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			int index = vertexTangent->GetIndexArray().GetAt(inCtrlPointIndex);
+			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[0]);
+			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[1]);
+			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[2]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
+
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (vertexTangent->GetReferenceMode())
+		{
+		case FbxGeometryElement::eDirect:
+		{
+			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[0]);
+			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[1]);
+			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(inVertexCounter).mData[2]);
+		}
+		break;
+
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			int index = vertexTangent->GetIndexArray().GetAt(inVertexCounter);
+			outTangent.x = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[0]);
+			outTangent.y = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[1]);
+			outTangent.z = static_cast<float>(vertexTangent->GetDirectArray().GetAt(index).mData[2]);
 		}
 		break;
 
