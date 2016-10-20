@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "FileManage.h"
-#include <fstream>
-#include <iostream>
+
 
 
 Filemanage::Filemanage()
@@ -11,9 +10,10 @@ Filemanage::Filemanage()
 
 Filemanage::~Filemanage()
 {
-
+	
 }
-bool Filemanage::WriteBindData(std::string _filename, BindPose* _bind)
+
+bool Filemanage::WriteBindData(std::string _filename, BindPose* _bind, const char* _FBXLocation)
 {
 	FILE* ofile;
 	NametoBinary(_filename);
@@ -24,8 +24,9 @@ bool Filemanage::WriteBindData(std::string _filename, BindPose* _bind)
 	full += _filename;
 	fopen_s(&ofile, full.c_str(), "wb");
 	if (nullptr == ofile) return false;
-	bindhead.num_bones = _bind->m_numBones;
-	fwrite(&bindhead, sizeof(Bindfhead), 1, ofile);
+	ExporterHeader header(FILE_TYPES::BIND_POSE,_FBXLocation);
+	header.bind.numBones = _bind->m_numBones;
+	fwrite(&header, sizeof(ExporterHeader), 1, ofile);
 	for(int i = 0; i < 4; ++i)
 		fwrite(&_bind->m_InvBindPose[i], sizeof(DirectX::XMFLOAT4X4), 1, ofile);
 	fclose(ofile);
@@ -41,17 +42,17 @@ bool Filemanage::ReadBindData(std::string _filename, BindPose& _bind)
 	full += "\\";
 	full += _filename;
 	fopen_s(&file, full.c_str(), "rb");
-	bindhead.num_bones = 0;
+	ExporterHeader header;
 	if (nullptr == file) return false;
-	fread(&bindhead, sizeof(Bindfhead), 1, file);
-	_bind.m_InvBindPose.resize(bindhead.num_bones);
+	fread(&header, sizeof(ExporterHeader), 1, file);
+	_bind.m_InvBindPose.resize(header.bind.numBones);
 	for (int i = 0; i < 4; ++i)
 		fread(&_bind.m_InvBindPose[i], sizeof(DirectX::XMFLOAT4X4), 1, file);
-	_bind.m_numBones = bindhead.num_bones;
+	_bind.m_numBones = header.bind.numBones;
 	fclose(file);
 	return true;
 }
-bool Filemanage::WriteVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices)
+bool Filemanage::WriteVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices, const char* _FBXLocation)
 {
 	FILE* ofile;
 	NametoBinary(_filename);
@@ -62,15 +63,16 @@ bool Filemanage::WriteVertexData(std::string _filename, std::vector<RTAproject::
 	full += _filename;
 	fopen_s(&ofile, full.c_str(), "wb");
 	if (nullptr == ofile) return false;
-	verthead.indexsize = _indices.size();
-	verthead.vertsize = _Vertices.size();
-	fwrite(&verthead, sizeof(Vertfhead), 1, ofile);
+	ExporterHeader header(FILE_TYPES::MESH, _FBXLocation);
+	header.mesh.numIndex = _indices.size();
+	header.mesh.vertSize = _Vertices.size();
+	fwrite(&header, sizeof(ExporterHeader), 1, ofile);
 	fwrite(&_Vertices[0], sizeof(RTAproject::RobustVertex), _Vertices.size(), ofile);
 	fwrite(&_indices[0], sizeof(unsigned short), _indices.size(), ofile);
 	fclose(ofile);
 	return true;
 }
-bool Filemanage::ReadVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices)
+bool Filemanage::ReadVertexData(std::string _filename, std::vector<RTAproject::RobustVertex>& _Vertices, std::vector<unsigned short>& _indices)
 {
 	FILE* file;
 	NametoBinary(_filename);
@@ -80,12 +82,11 @@ bool Filemanage::ReadVertexData(std::string _filename, std::vector<RTAproject::R
 	full += "\\";
 	full += _filename;
 	fopen_s(&file, full.c_str(), "rb");
-	verthead.vertsize = 0;
-	verthead.indexsize = 0;
 	if (nullptr == file) return false;
-	fread(&verthead, sizeof(Vertfhead), 1, file);
-	_Vertices.resize(verthead.vertsize);
-	_indices.resize(verthead.indexsize);
+	ExporterHeader header;
+	fread(&header, sizeof(ExporterHeader), 1, file);
+	_Vertices.resize(header.mesh.vertSize);
+	_indices.resize(header.mesh.numIndex);
 	fread(&_Vertices[0], sizeof(RTAproject::RobustVertex), _Vertices.size(), file);
 	fread(&_indices[0], sizeof(unsigned int), _indices.size(), file);
 	fclose(file);
@@ -97,13 +98,6 @@ void Filemanage::NametoBinary(std::string _filename)
 	m_Filename += _filename;
 	m_Filename += ".bin";
 }
-void Filemanage::ProcessAnimation(Animation* _anim)
-{
-	animhead.m_animtype = _anim->m_animType;
-	animhead.m_numkframes = _anim->m_numKeyFrames;
-	animhead.m_TotalTime = _anim->m_totalTime;
-	animhead.animsize = _anim->m_frames[0].m_numBones;
-}
 bool Filemanage::ReadAnimation(std::string _filename, Animation& _anim)
 {
 	auto folder = Windows::Storage::ApplicationData::Current->RoamingFolder;
@@ -114,21 +108,18 @@ bool Filemanage::ReadAnimation(std::string _filename, Animation& _anim)
 	FILE *file;
 	fopen_s(&file, path.c_str(), "rb");
 	//read header
-	animhead.animsize = 0;
-	animhead.m_animtype = 0;
-	animhead.m_numkframes = 0;
-	animhead.m_TotalTime = 0;
 	if (nullptr == file) return false;
-	fread(&animhead, sizeof(Afhead), 1, file);
+	ExporterHeader header;
+	fread(&header, sizeof(ExporterHeader), 1, file);
 	//set up
-	_anim.m_frames.resize(animhead.m_numkframes);
-	_anim.m_animType = (ANIM_TYPE)animhead.m_animtype;
-	_anim.m_totalTime = animhead.m_TotalTime;
-	_anim.m_numKeyFrames = animhead.m_numkframes;
-	for (size_t i = 0; i < animhead.m_numkframes; i++)
+	_anim.m_frames.resize(header.anim.numFrames);
+	_anim.m_animType = header.anim.AnimType;
+	_anim.m_totalTime = header.anim.Totaltime;
+	_anim.m_numKeyFrames = header.anim.numFrames;
+	for (size_t i = 0; i <  header.anim.numFrames; i++)
 	{
-		_anim.m_frames[i].m_bones.resize(animhead.animsize);
-		_anim.m_frames[i].m_numBones = animhead.animsize;
+		_anim.m_frames[i].m_bones.resize(header.anim.numBones);
+		_anim.m_frames[i].m_numBones = header.anim.numBones;
 	}
 	//read data
 	for (int i = 0; i < _anim.m_frames.size(); i++)
@@ -139,7 +130,7 @@ bool Filemanage::ReadAnimation(std::string _filename, Animation& _anim)
 	fclose(file);
 	return true;
 }
-bool Filemanage::WriteAnimfile(std::string _filename, Animation* _anim)
+bool Filemanage::WriteAnimfile(std::string _filename, Animation* _anim, const char* _FBXLocation)
 {
 	FILE* ofile = nullptr;
 	NametoBinary(_filename);
@@ -150,7 +141,12 @@ bool Filemanage::WriteAnimfile(std::string _filename, Animation* _anim)
 	full += _filename;
 	fopen_s(&ofile, full.c_str(), "wb");
 	if (nullptr == ofile) return false;
-	fwrite(&animhead, sizeof(Afhead), 1, ofile);
+	ExporterHeader header(FILE_TYPES::ANIMATION, _FBXLocation);
+	header.anim.numBones = _anim->m_frames[0].m_numBones;
+	header.anim.numFrames = _anim->m_numKeyFrames;
+	header.anim.Totaltime = _anim->m_totalTime;
+	header.anim.AnimType = _anim->m_animType;
+	fwrite(&header, sizeof(ExporterHeader), 1, ofile);
 	for (int i = 0; i < _anim->m_frames.size(); i++)
 	{
 		fwrite(&_anim->m_frames[i].m_time, sizeof(double), 1, ofile);

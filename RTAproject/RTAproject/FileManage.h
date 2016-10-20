@@ -3,39 +3,26 @@
 #include "..\Content\ShaderStructures.h"
 #include "Animation.h"
 #include "BindPose.h"
-struct Bindfhead
-{
-	int num_bones;
-};
-struct Vertfhead
-{
-	int vertsize;
-	int indexsize;
-};
-struct Afhead
-{
-	unsigned int animsize;
-	int m_animtype;
-	int m_numkframes;
-	float m_TotalTime;
-};
+#include <fstream>
+#include <iostream>
+#include "FBXExporter.h"
+
 class Filemanage
 {
 public:
 	Filemanage();
 	~Filemanage();
-	bool WriteAnimfile(std::string _filename, Animation* _anim);
-	bool WriteBindData(std::string _filename, BindPose* _bind);
-	bool WriteVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices);
+	
+	bool WriteAnimfile(std::string _filename, Animation* _anim, const char* _FBXLocation);
+	bool WriteBindData(std::string _filename, BindPose* _bind, const char* _FBXLocation);
+	bool WriteVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices, const char* _FBXLocation);
 	bool ReadBindData(std::string _filename, BindPose& _bind);
-	bool ReadVertexData(std::string _filename, std::vector<RTAproject::RobustVertex> _Vertices, std::vector<unsigned short> _indices);
+	bool ReadVertexData(std::string _filename, std::vector<RTAproject::RobustVertex>& _Vertices, std::vector<unsigned short>& _indices);
 	void NametoBinary(std::string _filename);
-	void ProcessAnimation(Animation* _anim);
 	bool ReadAnimation(std::string _filename, Animation& _anim);
 	std::string m_Filename;
-	Bindfhead bindhead;
-	Afhead animhead;
-	Vertfhead verthead;
+	ExporterHeader header;
+	
 private:
 };
 

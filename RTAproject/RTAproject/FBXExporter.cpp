@@ -7,6 +7,7 @@ using namespace DirectX;
 #include <iomanip>
 #include "Interpolator.h"
 
+#define EXPORTER_VERSION_NUMBER 1
 FBXExporter::FBXExporter()
 {
 	m_FBXManager = nullptr;
@@ -649,3 +650,4 @@ void FBXExporter::ConvertToUML()
 
 
 }
+

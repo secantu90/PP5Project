@@ -83,7 +83,8 @@ namespace RTAproject
 		std::vector<unsigned short> m_indices;
 		std::vector<RTAproject::RobustVertex> m_tempVert;
 		std::vector<unsigned short> m_tempind;
-
+		ExporterHeader m_exporthead;
+		FILE* file = nullptr;
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;

@@ -123,9 +123,6 @@
     <FxCompile Include="SkyBoxPS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
-    <FxCompile Include="SkyBoxVS.hlsl">
-      <Filter>Content</Filter>
-    </FxCompile>
     <FxCompile Include="SimplePS.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
@@ -135,5 +132,6 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Content</Filter>
     </FxCompile>
+    <FxCompile Include="SkyBoxVS.hlsl" />
   </ItemGroup>
 </Project>

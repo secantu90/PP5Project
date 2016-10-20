@@ -192,20 +192,20 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 		keys['1'] = false;
 	}
-	if (keys[VK_F1])
-	{
-		/*m_Bind = &m_FBXExporter.m_bindPose;
-		m_FileIO.WriteBindData("bindtest", m_Bind);
-		m_FileIO.ReadBindData("bindtest",m_tempbind);*/
-		/*m_Animation = &m_FBXExporter.m_animation;
-		m_FileIO.ProcessAnimation(m_Animation);
-		m_FileIO.WriteAnimfile("Aaaaaaaaaaa", m_Animation);
-		m_FileIO.ReadAnimation("Aaaaaaaaaaa", m_temp);*/
-		m_indices = m_FBXExporter.m_Indices;
-		m_Vertices = m_FBXExporter.m_Vertices;
-		m_FileIO.WriteVertexData("verttest", m_Vertices, m_indices);
-		m_FileIO.ReadVertexData("verttest", m_tempVert, m_tempind);
-	}
+	//if (keys[VK_F1])
+	//{
+	//	/*m_Bind = &m_FBXExporter.m_bindPose;
+	//	m_FileIO.WriteBindData("bindtest", m_Bind);
+	//	m_FileIO.ReadBindData("bindtest",m_tempbind);*/
+	//	/*m_Animation = &m_FBXExporter.m_animation;
+	//	m_FileIO.ProcessAnimation(m_Animation);
+	//	m_FileIO.WriteAnimfile("Aaaaaaaaaaa", m_Animation);
+	//	m_FileIO.ReadAnimation("Aaaaaaaaaaa", m_temp);*/
+	//	m_indices = m_FBXExporter.m_Indices;
+	//	m_Vertices = m_FBXExporter.m_Vertices;
+	//	m_FileIO.WriteVertexData("verttest", m_Vertices, m_indices);
+	//	m_FileIO.ReadVertexData("verttest", m_tempVert, m_tempind);
+	//}
 
 	if (mouseMoved)
 	{
@@ -591,10 +591,10 @@ void Sample3DSceneRenderer::Render()
 		0
 		);
 
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[0].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
-	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[0], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[0]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[0].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[1]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[2]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
+	XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[3]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
 	
 	context->UpdateSubresource1(
 		m_boneOffsetsBuffer.Get(),
@@ -998,19 +998,38 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		);
 	});
 	auto loadBoxTask = (createPSTask && createVSTask).then([this]() {
-
-		this->m_FBXExporter.Initialize();
-		this->m_FBXExporter.LoadScene("Box_Idle.fbx");
-
-		m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
-
-		if (m_FBXExporter.m_Skeleton.m_joints.empty())
+		auto folder = Windows::Storage::ApplicationData::Current->RoamingFolder;
+		std::wstring ws(folder->Path->Data());
+		std::string full(ws.begin(), ws.end());
+		full += "\\";
+		full += "Box_Bind";
+		if (m_exporthead.check(&file, full.c_str(),"Box_Idle.fbx"))
 		{
-			m_FBXExporter.m_HasAnimation = false;
+			m_FileIO.ReadBindData("Box_Bind", m_FBXExporter.m_bindPose);
+			m_FileIO.ReadVertexData("Box_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
+			m_FileIO.ReadAnimation("Box_Anim", m_FBXExporter.m_animation);
+			
 		}
+		else
+		{
+			this->m_FBXExporter.Initialize();
+			this->m_FBXExporter.LoadScene("Box_Idle.fbx");
 
-		m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
-		m_FBXExporter.Optimize();
+			m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
+
+			if (m_FBXExporter.m_Skeleton.m_joints.empty())
+			{
+				m_FBXExporter.m_HasAnimation = false;
+			}
+			m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
+			m_FBXExporter.Optimize();
+			m_FileIO.WriteAnimfile("Box_Anim", &m_FBXExporter.m_animation, "Box_Idle.fbx");
+			m_FileIO.WriteBindData("Box_Bind", &m_FBXExporter.m_bindPose, "Box_Idle.fbx");
+			m_FileIO.WriteVertexData("Box_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Box_Idle.fbx");
+		}
+		
+
+		
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = m_FBXExporter.m_Vertices.data();
