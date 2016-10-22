@@ -104,6 +104,7 @@ public:
 	////////////////////////
 	//Emilio
 	Animation m_animation;
+	Animation m_animation2;
 	BindPose m_bindPose;
 	std::vector<DirectX::XMFLOAT4X4> m_convertToBindPose;
 	//End Emilio

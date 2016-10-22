@@ -1016,6 +1016,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			m_FileIO.ReadBindData("Mage_Bind", m_FBXExporter.m_bindPose);
 			m_FileIO.ReadVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
 			m_FileIO.ReadAnimation("Mage_Anim", m_FBXExporter.m_animation);
+			//m_FileIO.ReadAnimation("Mage_Anim2", m_FBXExporter.m_animation2);
 			
 		}
 		else
@@ -1032,8 +1033,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
 			m_FBXExporter.Optimize();
 			m_FileIO.WriteAnimfile("Mage_Anim", &m_FBXExporter.m_animation, "Mage with Bind and Textures.fbx");
+			//m_FileIO.WriteAnimfile("Mage_Anim2", &m_FBXExporter.m_animation, "");
 			m_FileIO.WriteBindData("Mage_Bind", &m_FBXExporter.m_bindPose, "Mage with Bind and Textures.fbx");
 			m_FileIO.WriteVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Mage with Bind and Textures.fbx");
+
 		}
 		
 
