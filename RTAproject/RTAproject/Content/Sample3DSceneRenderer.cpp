@@ -2,6 +2,7 @@
 #include "Sample3DSceneRenderer.h"
 
 #include "..\Common\DirectXHelper.h"
+#include "Interpolator.h"
 
 using namespace RTAproject;
 
@@ -180,18 +181,43 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	if (keys['S'])
 		newcamera.r[camPos] += (newcamera.r[camMoveZ] * static_cast<float>(-timer.GetElapsedSeconds()) * 5.0f);
 
-
-	//AdvanceAnimation
-	if (keys[VK_SPACE] || keys['1'])
+	float speed = 1;
+	if (keys[VK_SPACE])
 	{
-		currentFrame++;
-		if (currentFrame >= m_FBXExporter.m_animation.m_numKeyFrames)
-		{
-			currentFrame = 0;
-		}
-
-		keys['1'] = false;
+		speed = 0.1f;
 	}
+
+	m_blender.Update(timer.GetElapsedSeconds()*speed);
+
+
+	//Play2ndAnimation
+	if (keys['1'])
+	{
+		Interpolator* tempolator = &interpolator2;
+		if (m_blender.GetCurrAnim() != tempolator)
+		{
+			m_blender.SetNextAnim(tempolator);
+		}
+	}
+	else
+	{
+		Interpolator* tempolator = &interpolator;
+		if (m_blender.GetCurrAnim() != tempolator)
+		{
+			m_blender.SetNextAnim(tempolator);
+		}
+	}
+
+	//if (keys[VK_SPACE] || keys['1'])
+	//{
+	//	currentFrame++;
+	//	if (currentFrame >= m_FBXExporter.m_animation.m_numKeyFrames)
+	//	{
+	//		currentFrame = 0;
+	//	}
+
+	//	keys['1'] = false;
+	//}
 	//if (keys[VK_F1])
 	//{
 	//	/*m_Bind = &m_FBXExporter.m_bindPose;
@@ -591,12 +617,10 @@ void Sample3DSceneRenderer::Render()
 		0,
 		0
 		);
+
 	for (size_t i = 0; i < m_FBXExporter.m_animation.GetFrame(0).size(); ++i)
 	{
-		XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[i], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_bindPose.m_InvBindPose[i]), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[i].m_boneMatrix))));
-		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[1], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[1].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[1].m_boneMatrix))));
-		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[2], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[2].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[2].m_boneMatrix))));
-		//XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[3], XMMatrixTranspose(XMMatrixMultiply(XMLoadFloat4x4(&m_FBXExporter.m_Skeleton.m_joints[3].m_globalBindposeInverse), XMLoadFloat4x4(&m_FBXExporter.m_animation.GetFrame(currentFrame)[3].m_boneMatrix))));
+		XMStoreFloat4x4(&m_boneOffsetsBufferData.offsets[i], XMLoadFloat4x4(&(*m_blender.GetSkinningMatrix())[i]));
 	}
 
 	
@@ -961,9 +985,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		HRESULT hr;
 
 		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"brownishDirt_seamless.dds", nullptr, &m_shaderView[0]);
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardDiffuse.dds", nullptr, &m_shaderView[1]);//Wizard texture
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardNormal.dds", nullptr, &m_shaderView[2]);//Wizard normal map texture
-		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"WizardSpecularMap.dds", nullptr, &m_shaderView[3]);//Wizard Specular map texture
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Mage_D.dds", nullptr, &m_shaderView[1]);//Wizard texture
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Mage_N.dds", nullptr, &m_shaderView[2]);//Wizard normal map texture
+		hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Mage_S.dds", nullptr, &m_shaderView[3]);//Wizard Specular map texture
 
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -1010,19 +1034,20 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		std::wstring ws(folder->Path->Data());
 		std::string full(ws.begin(), ws.end());
 		full += "\\";
-		full += "Mage_Bind";
-		if (m_exporthead.check(&file, full.c_str(),"Mage with Bind and Textures.fbx"))
+		full += "WizardIdle_Bind";
+		if (m_exporthead.check(&file, full.c_str(),"Idle.fbx"))
 		{
-			m_FileIO.ReadBindData("Mage_Bind", m_FBXExporter.m_bindPose);
-			m_FileIO.ReadVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
-			m_FileIO.ReadAnimation("Mage_Anim", m_FBXExporter.m_animation);
-			//m_FileIO.ReadAnimation("Mage_Anim2", m_FBXExporter.m_animation2);
-			
+			m_FileIO.ReadBindData("WizardIdle_Bind", m_FBXExporter.m_bindPose);
+			m_FileIO.ReadVertexData("WizardIdle_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices);
+			m_FileIO.ReadAnimation("WizardIdle_Anim", m_FBXExporter.m_animation);
+			m_FileIO.ReadAnimation("WizardRun_Anim", m_FBXExporter2.m_animation);
+
 		}
 		else
 		{
+			//Idle Anim
 			this->m_FBXExporter.Initialize();
-		this->m_FBXExporter.LoadScene("Mage with Bind and Textures.fbx");
+		this->m_FBXExporter.LoadScene("Idle.fbx");
 
 			m_FBXExporter.ProcessSkeletonHierarchy(m_FBXExporter.m_FBXScene->GetRootNode());
 
@@ -1032,13 +1057,36 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			}
 			m_FBXExporter.ProcessGeometry(m_FBXExporter.m_FBXScene->GetRootNode());
 			m_FBXExporter.Optimize();
-			m_FileIO.WriteAnimfile("Mage_Anim", &m_FBXExporter.m_animation, "Mage with Bind and Textures.fbx");
+			m_FileIO.WriteAnimfile("WizardIdle_Anim", &m_FBXExporter.m_animation, "Idle.fbx");
 			//m_FileIO.WriteAnimfile("Mage_Anim2", &m_FBXExporter.m_animation, "");
-			m_FileIO.WriteBindData("Mage_Bind", &m_FBXExporter.m_bindPose, "Mage with Bind and Textures.fbx");
-			m_FileIO.WriteVertexData("Mage_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Mage with Bind and Textures.fbx");
+			m_FileIO.WriteBindData("WizardIdle_Bind", &m_FBXExporter.m_bindPose, "Idle.fbx");
+			m_FileIO.WriteVertexData("WizardIdle_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Idle.fbx");
 
+
+
+			//Run Anim
+			this->m_FBXExporter2.Initialize();
+			this->m_FBXExporter2.LoadScene("Run.fbx");
+
+			m_FBXExporter2.ProcessSkeletonHierarchy(m_FBXExporter2.m_FBXScene->GetRootNode());
+
+			if (m_FBXExporter2.m_Skeleton.m_joints.empty())
+			{
+				m_FBXExporter2.m_HasAnimation = false;
+			}
+			m_FBXExporter2.ProcessGeometry(m_FBXExporter2.m_FBXScene->GetRootNode());
+			m_FBXExporter2.Optimize();
+			m_FileIO.WriteAnimfile("WizardRun_Anim", &m_FBXExporter2.m_animation, "Run.fbx");
+			//m_FileIO.WriteAnimfile("Mage_Anim2", &m_FBXExporter.m_animation, "");
+			//m_FileIO.WriteBindData("WizardIdle_Bind", &m_FBXExporter.m_bindPose, "Idle.fbx");
+			//m_FileIO.WriteVertexData("WizardIdle_Vert", m_FBXExporter.m_Vertices, m_FBXExporter.m_Indices, "Idle.fbx");
 		}
-		
+		interpolator.SetAnimation(&m_FBXExporter.m_animation);
+		interpolator2.SetAnimation(&m_FBXExporter2.m_animation);
+		Interpolator* tempolator = &interpolator;
+		m_blender.SetCurrAnim(tempolator);
+		BindPose * tempPose = &m_FBXExporter.m_bindPose;
+		m_blender.SetBindPose(&tempPose->m_InvBindPose);
 
 		
 

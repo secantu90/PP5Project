@@ -238,6 +238,9 @@
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
     <Image Include="brownishDirt_seamless.dds" />
     <Image Include="energy_seamless.dds" />
+    <Image Include="Mage_D.dds" />
+    <Image Include="Mage_N.dds" />
+    <Image Include="Mage_S.dds" />
     <Image Include="mountains.dds" />
     <Image Include="TestCubeDDS.dds" />
     <Image Include="WizardDiffuse.dds" />
@@ -248,6 +251,7 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="App.h" />
     <ClInclude Include="BindPose.h" />
+    <ClInclude Include="Blender.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="FBXExporter.h" />
@@ -267,6 +271,7 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="App.cpp" />
     <ClCompile Include="BindPose.cpp" />
+    <ClCompile Include="Blender.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="FBXExporter.cpp" />
@@ -402,6 +407,28 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Idle.fbx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Run.fbx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

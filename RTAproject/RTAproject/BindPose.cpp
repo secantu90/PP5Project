@@ -6,7 +6,7 @@ BindPose::BindPose()
 {
 }
 
-const std::vector<DirectX::XMFLOAT4X4> BindPose::GetBindPose()
+const std::vector<DirectX::XMFLOAT4X4>& BindPose::GetBindPose()
 {
 	return m_InvBindPose;
 }

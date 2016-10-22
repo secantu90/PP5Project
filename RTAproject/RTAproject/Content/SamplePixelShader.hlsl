@@ -34,14 +34,14 @@ SamplerState filter : register(s0);
 float4 main(PixelShaderInput input) : SV_TARGET
 {
 	//Specular Mapping
-	float4 specularSample;
+	float4 specularSample = float4(0.0f,0.0f,0.0f,0.0f);
 
 	//Normal Mapping
-	float4 normalMapColor;
+	float4 normalMapColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	float4 finalNorm;
+	float4 finalNorm = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	float4 finalColor1;
+	float4 finalColor1 = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	if (input.ImageRef == 0)
 	{
 		//Ground

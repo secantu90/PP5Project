@@ -9,7 +9,7 @@ Interpolator::Interpolator()
 }
 
 
-UMLKeyFrame Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, float _deltaTime)
+UMLKeyFrame Interpolator::Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, float _deltaTime)
 {
 
 	UMLKeyFrame temp = _currFrame;

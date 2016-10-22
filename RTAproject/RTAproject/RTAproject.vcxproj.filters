@@ -74,6 +74,7 @@
     <ClCompile Include="BindPose.cpp" />
     <ClCompile Include="Interpolator.cpp" />
     <ClCompile Include="FileManage.cpp" />
+    <ClCompile Include="Blender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -87,6 +88,7 @@
     <ClInclude Include="BindPose.h" />
     <ClInclude Include="Interpolator.h" />
     <ClInclude Include="FileManage.h" />
+    <ClInclude Include="Blender.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -111,6 +113,15 @@
     <Image Include="WizardSpecularMap.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Mage_D.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Mage_N.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Mage_S.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -122,6 +133,9 @@
     </None>
     <None Include="Cube.obj" />
     <None Include="Box_Idle.fbx">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Mage with Bind and Textures.fbx">
       <Filter>Assets</Filter>
     </None>
   </ItemGroup>
@@ -144,7 +158,10 @@
     <FxCompile Include="SkyBoxVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <MeshContentTask Include="Mage with Bind and Textures.fbx">
+    <MeshContentTask Include="Idle.fbx">
+      <Filter>Assets</Filter>
+    </MeshContentTask>
+    <MeshContentTask Include="Run.fbx">
       <Filter>Assets</Filter>
     </MeshContentTask>
   </ItemGroup>

@@ -14,6 +14,7 @@ public:
 	std::vector<Boint>	m_boints;
 
 	Interpolator();
+	UMLKeyFrame Lerp(UMLKeyFrame _currFrame, UMLKeyFrame _nextFrame, float _deltaTime);
 	Boint* GetCurrentBoint(int& _num);
 	double GetTime();
 	void SetAnimation(const Animation* _animation);

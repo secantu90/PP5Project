@@ -9,6 +9,9 @@
 #include <vector>
 #include "Model.h"
 #include "FileManage.h"
+#include "Blender.h"
+#include "Interpolator.h"
+
 namespace RTAproject
 {
 	// This sample renderer instantiates a basic rendering pipeline.
@@ -74,10 +77,12 @@ namespace RTAproject
 		uint32  m_indexCountQuad;
 
 		FBXExporter m_FBXExporter;
+		FBXExporter m_FBXExporter2;
 		Animation* m_Animation;
-		Animation m_temp;
+		Blender m_blender;
+		Interpolator interpolator;
+		Interpolator interpolator2;
 		BindPose* m_Bind;
-		BindPose m_tempbind;
 		Filemanage m_FileIO;
 		std::vector<RTAproject::RobustVertex> m_Vertices;
 		std::vector<unsigned short> m_indices;
